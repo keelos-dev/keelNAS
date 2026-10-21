@@ -1,0 +1,61 @@
+------------------------------------
+LABEL 0 
+------------------------------------
+    version: 5000
+    name: 'tank'
+    state: 0
+    txg: 4
+    pool_guid: 5476079027047100592
+    errata: 0
+    min_alloc: 512
+    max_alloc: 512
+    hostid: 1206039150
+    hostname: 'oldnas'
+    top_guid: 385531501684535579
+    guid: 14556866233928346208
+    vdev_children: 1
+    vdev_tree:
+        type: 'raidz'
+        id: 0
+        guid: 385531501684535579
+        nparity: 2
+        metaslab_array: 68
+        metaslab_shift: 29
+        ashift: 9
+        asize: 8570011648
+        min_alloc: 512
+        is_log: 0
+        create_txg: 4
+        children[0]:
+            type: 'disk'
+            id: 0
+            guid: 14556866233928346208
+            path: '/dev/gpt/slot01'
+            whole_disk: 1
+            create_txg: 4
+        children[1]:
+            type: 'disk'
+            id: 1
+            guid: 17225675037542841039
+            path: '/dev/gpt/slot02'
+            whole_disk: 1
+            create_txg: 4
+        children[2]:
+            type: 'disk'
+            id: 2
+            guid: 13549753998043241528
+            path: '/dev/gpt/slot03'
+            whole_disk: 1
+            create_txg: 4
+        children[3]:
+            type: 'disk'
+            id: 3
+            guid: 18282689042732478365
+            path: '/dev/gpt/slot04'
+            whole_disk: 1
+            create_txg: 4
+    features_for_read:
+        com.delphix:hole_birth
+        com.delphix:embedded_data
+        com.klarasystems:vdev_zaps_v2
+    labels = 0 1 2 3 

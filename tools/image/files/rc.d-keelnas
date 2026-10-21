@@ -1,0 +1,72 @@
+#!/bin/sh
+# keelNAS: what the system needs before the services start, and keelnasd.
+#
+# PROVIDE: keelnas
+# REQUIRE: zfs NETWORKING
+# BEFORE: samba_server ctld
+# KEYWORD: nojail shutdown
+
+. /etc/rc.subr
+
+name="keelnas"
+rcvar="keelnas_enable"
+start_cmd="keelnas_start"
+stop_cmd="keelnas_stop"
+status_cmd="keelnas_status"
+extra_commands="status"
+
+keelnasd=/usr/local/sbin/keelnasd
+# daemon(8) supervises keelnasd (restarts it if it dies); this is the supervisor's pid.
+supervisor_pid=/var/run/keelnasd-daemon.pid
+
+# ZFS's cache takes all memory but 1 GB by default: in a 2 GB guest a 4 GiB copy left 47 MB free.
+# It gets a third of the memory, at least 192 MB; set keelnas_arc_max (bytes) in rc.conf to choose.
+keelnas_arc()
+{
+	local mem max
+	mem=$(sysctl -n hw.physmem)
+	max=${keelnas_arc_max:-$((mem / 3))}
+	[ "$max" -lt 201326592 ] && max=201326592
+	sysctl vfs.zfs.arc.max=$max >/dev/null && echo "keelnas: ZFS cache limited to $((max / 1048576)) MB."
+}
+
+# keelnasd imports the data pools, makes the users and the Samba and ctld configuration from
+# /var/db/keelnas/state.json and starts smbd and ctld itself (docs/04-keelnasd.md).
+keelnas_start()
+{
+	keelnas_arc
+	[ -x $keelnasd ] || return 0
+	if pgrep -F $supervisor_pid >/dev/null 2>&1; then
+		echo "keelnasd is already running."
+		return 0
+	fi
+	daemon -f -r -R 5 -P $supervisor_pid -t keelnasd -o /var/log/keelnasd.log $keelnasd serve
+	echo "Started keelnasd."
+}
+
+keelnas_stop()
+{
+	if pgrep -F $supervisor_pid >/dev/null 2>&1; then
+		pkill -F $supervisor_pid
+		i=0
+		while pgrep -F $supervisor_pid >/dev/null 2>&1 && [ $i -lt 20 ]; do
+			sleep 0.5; i=$((i + 1))
+		done
+		echo "Stopped keelnasd."
+	fi
+	rm -f $supervisor_pid
+}
+
+keelnas_status()
+{
+	if pgrep -F $supervisor_pid >/dev/null 2>&1; then
+		echo "keelnasd is running as pid $(pgrep -P $(cat $supervisor_pid))."
+	else
+		echo "keelnasd is not running."
+		return 1
+	fi
+}
+
+load_rc_config $name
+: ${keelnas_enable:="YES"}
+run_rc_command "$1"

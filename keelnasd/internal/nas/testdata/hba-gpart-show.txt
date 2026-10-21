@@ -1,0 +1,45 @@
+=>      40  41942960    vtbd0  GPT  (20G)
+        40    532480  vtbd0p1  efi  (260M)
+    532520   4194304  vtbd0p2  freebsd-swap  (2.0G)
+   4726824  37216176  vtbd0p3  freebsd-zfs  (18G)
+
+=>      40  16777136    vtbd3  GPT  (8.0G)
+        40      2008           - free -  (1.0M)
+      2048  16775128  vtbd3p1  ms-basic-data  (8.0G)
+
+=>         40  15628053088  da0  GPT  (7.3T)
+           40  15628053088  da0p1  freebsd-zfs  (7.3T)
+
+=>         40  15628053088  da1  GPT  (7.3T)
+           40  15628053088  da1p1  freebsd-zfs  (7.3T)
+
+=>         40  15628053088  da2  GPT  (7.3T)
+           40  15628053088  da2p1  freebsd-zfs  (7.3T)
+
+=>         40  15628053088  da3  GPT  (7.3T)
+           40  15628053088  da3p1  freebsd-zfs  (7.3T)
+
+=>         40  15628053088  da4  GPT  (7.3T)
+           40  15628053088  da4p1  freebsd-zfs  (7.3T)
+
+=>         40  15628053088  da5  GPT  (7.3T)
+           40  15628053088  da5p1  freebsd-zfs  (7.3T)
+
+=>         40  15628053088  da6  GPT  (7.3T)
+           40  15628053088  da6p1  freebsd-zfs  (7.3T)
+
+=>         40  15628053088  da7  GPT  (7.3T)
+           40  15628053088  da7p1  freebsd-zfs  (7.3T)
+
+=>         40  15628053088  da8  GPT  (7.3T)
+           40  15628053088  da8p1  freebsd-zfs  (7.3T)
+
+=>         40  15628053088  da9  GPT  (7.3T)
+           40  15628053088  da9p1  freebsd-zfs  (7.3T)
+
+=>         40  15628053088  da10  GPT  (7.3T)
+           40  15628053088  da10p1  freebsd-zfs  (7.3T)
+
+=>         40  15628053088  da11  GPT  (7.3T)
+           40  15628053088  da11p1  freebsd-zfs  (7.3T)
+

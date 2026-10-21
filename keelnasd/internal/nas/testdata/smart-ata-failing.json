@@ -1,0 +1,16 @@
+{
+  "_comment": "SYNTHETIC sample written from the smartctl 7.x JSON format, not captured from a real disk. exit_status 8 = bit 3, SMART status says DISK FAILING",
+  "json_format_version": [1, 0],
+  "smartctl": {"version": [7, 5], "argv": ["smartctl", "-H", "-A", "-j", "/dev/ada2"], "exit_status": 8},
+  "device": {"name": "/dev/ada2", "info_name": "/dev/ada2", "type": "atacam", "protocol": "ATA"},
+  "smart_status": {"passed": false},
+  "ata_smart_attributes": {
+    "revision": 16,
+    "table": [
+      {"id": 5, "name": "Reallocated_Sector_Ct", "value": 1, "worst": 1, "thresh": 10, "when_failed": "now", "raw": {"value": 4012, "string": "4012"}},
+      {"id": 194, "name": "Temperature_Celsius", "value": 59, "worst": 40, "thresh": 0, "when_failed": "", "raw": {"value": 41, "string": "41"}},
+      {"id": 197, "name": "Current_Pending_Sector", "value": 100, "worst": 100, "thresh": 0, "when_failed": "", "raw": {"value": 88, "string": "88"}}
+    ]
+  },
+  "temperature": {"current": 41}
+}

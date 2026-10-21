@@ -1,0 +1,23 @@
+   pool: tank
+     id: 5476079027047100592
+  state: ONLINE
+status: The pool was last accessed by another system.
+ action: The pool can be imported using its name or numeric identifier and
+	the '-f' flag.
+   see: https://openzfs.github.io/openzfs-docs/msg/ZFS-8000-EY
+ config:
+
+	tank            ONLINE
+	  raidz2-0      ONLINE
+	    gpt/slot01  ONLINE
+	    gpt/slot02  ONLINE
+	    gpt/slot03  ONLINE
+	    gpt/slot04  ONLINE
+	    gpt/slot05  ONLINE
+	    gpt/slot06  ONLINE
+	    gpt/slot07  ONLINE
+	    gpt/slot08  ONLINE
+	    gpt/slot09  ONLINE
+	    gpt/slot10  ONLINE
+	    gpt/slot11  ONLINE
+	    gpt/slot12  ONLINE

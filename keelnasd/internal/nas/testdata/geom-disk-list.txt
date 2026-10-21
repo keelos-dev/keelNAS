@@ -1,0 +1,40 @@
+Geom name: vtbd0
+Providers:
+1. Name: vtbd0
+   Mediasize: 21474836480 (20G)
+   Sectorsize: 512
+   Stripesize: 16384
+   Stripeoffset: 0
+   Mode: r2w2e5
+   descr: 
+   ident: BHYVE-B6FD-8511-5AF8
+   rotationrate: unknown
+   fwsectors: 0
+   fwheads: 0
+
+Geom name: vtbd1
+Providers:
+1. Name: vtbd1
+   Mediasize: 8589934592 (8.0G)
+   Sectorsize: 512
+   Stripesize: 16384
+   Stripeoffset: 0
+   Mode: r1w1e1
+   descr: 
+   ident: BHYVE-FCD9-0EEB-9081
+   rotationrate: unknown
+   fwsectors: 0
+   fwheads: 0
+
+
+Geom name: cd0
+Providers:
+1. Name: cd0
+   Mediasize: 0 (0B)
+   Sectorsize: 2048
+   Mode: r0w0e0
+   descr: QEMU QEMU DVD-ROM
+   ident: (null)
+   rotationrate: unknown
+   fwsectors: 0
+   fwheads: 0

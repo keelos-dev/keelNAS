@@ -1,0 +1,34 @@
+{
+  "json_format_version": [
+    1,
+    0
+  ],
+  "smartctl": {
+    "version": [
+      7,
+      5
+    ],
+    "pre_release": false,
+    "svn_revision": "5714",
+    "platform_info": "FreeBSD 15.1-RELEASE-p4 amd64",
+    "build_info": "(local build)",
+    "argv": [
+      "smartctl",
+      "-H",
+      "-A",
+      "-j",
+      "/dev/vtbd1"
+    ],
+    "messages": [
+      {
+        "string": "/dev/vtbd1: Unable to detect device type",
+        "severity": "error"
+      }
+    ],
+    "exit_status": 1
+  },
+  "local_time": {
+    "time_t": 1790939439,
+    "asctime": "Fri Oct  2 11:10:39 2026    "
+  }
+}

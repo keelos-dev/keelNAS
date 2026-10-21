@@ -1,0 +1,204 @@
+Geom name: vtbd0
+Providers:
+1. Name: vtbd0
+   Mediasize: 21474836480 (20G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: 
+   ident: BHYVE-SYS
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: vtbd1
+Providers:
+1. Name: vtbd1
+   Mediasize: 8589934592 (8G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: 
+   ident: BHYVE-D1
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: vtbd2
+Providers:
+1. Name: vtbd2
+   Mediasize: 8589934592 (8G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: 
+   ident: BHYVE-D2
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: vtbd3
+Providers:
+1. Name: vtbd3
+   Mediasize: 8589934592 (8G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: 
+   ident: BHYVE-D3
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: vtbd4
+Providers:
+1. Name: vtbd4
+   Mediasize: 8589934592 (8G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: 
+   ident: BHYVE-D4
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: da0
+Providers:
+1. Name: da0
+   Mediasize: 8001563222016 (7452G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: TOSHIBA MD05ACA800
+   ident: SER0000
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: da1
+Providers:
+1. Name: da1
+   Mediasize: 8001563222016 (7452G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: TOSHIBA MD05ACA800
+   ident: SER0001
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: da2
+Providers:
+1. Name: da2
+   Mediasize: 8001563222016 (7452G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: TOSHIBA MD05ACA800
+   ident: SER0002
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: da3
+Providers:
+1. Name: da3
+   Mediasize: 8001563222016 (7452G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: TOSHIBA MD05ACA800
+   ident: SER0003
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: da4
+Providers:
+1. Name: da4
+   Mediasize: 8001563222016 (7452G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: TOSHIBA MD05ACA800
+   ident: SER0004
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: da5
+Providers:
+1. Name: da5
+   Mediasize: 8001563222016 (7452G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: TOSHIBA MD05ACA800
+   ident: SER0005
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: da6
+Providers:
+1. Name: da6
+   Mediasize: 8001563222016 (7452G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: TOSHIBA MD05ACA800
+   ident: SER0006
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: da7
+Providers:
+1. Name: da7
+   Mediasize: 8001563222016 (7452G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: TOSHIBA MD05ACA800
+   ident: SER0007
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: da8
+Providers:
+1. Name: da8
+   Mediasize: 8001563222016 (7452G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: TOSHIBA MD05ACA800
+   ident: SER0008
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: da9
+Providers:
+1. Name: da9
+   Mediasize: 8001563222016 (7452G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: TOSHIBA MD05ACA800
+   ident: SER0009
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: da10
+Providers:
+1. Name: da10
+   Mediasize: 8001563222016 (7452G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: TOSHIBA MD05ACA800
+   ident: SER0010
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+
+Geom name: da11
+Providers:
+1. Name: da11
+   Mediasize: 8001563222016 (7452G)
+   Sectorsize: 512
+   Mode: r0w0e0
+   descr: TOSHIBA MD05ACA800
+   ident: SER0011
+   rotationrate: 7200
+   fwsectors: 63
+   fwheads: 255
+

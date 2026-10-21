@@ -1,0 +1,6 @@
+                                 gpt/knefi     N/A  vtbd0p1
+gptid/a32d5025-be3e-11f1-b556-112eb0154ca5     N/A  vtbd0p1
+                             msdosfs/KNEFI     N/A  vtbd0p1
+                                gpt/knswap     N/A  vtbd0p2
+                                 gpt/knsys     N/A  vtbd0p3
+          diskid/DISK-BHYVE-B6FD-8511-5AF8     N/A  vtbd0

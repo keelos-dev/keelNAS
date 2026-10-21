@@ -1,0 +1,14 @@
+{
+  "_comment": "SYNTHETIC sample written from the smartctl 7.x JSON format, not captured from a real disk",
+  "json_format_version": [1, 0],
+  "smartctl": {"version": [7, 5], "argv": ["smartctl", "-H", "-A", "-j", "/dev/nda0"], "exit_status": 0},
+  "device": {"name": "/dev/nda0", "info_name": "/dev/nda0", "type": "nvme", "protocol": "NVMe"},
+  "smart_status": {"passed": true, "nvme": {"value": 0}},
+  "nvme_smart_health_information_log": {
+    "critical_warning": 0, "temperature": 44, "available_spare": 100, "available_spare_threshold": 10,
+    "percentage_used": 3, "data_units_read": 1234567, "data_units_written": 2345678,
+    "power_on_hours": 8000, "unsafe_shutdowns": 12, "media_errors": 0, "num_err_log_entries": 0
+  },
+  "temperature": {"current": 44},
+  "power_on_time": {"hours": 8000}
+}

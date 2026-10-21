@@ -1,0 +1,14 @@
+gpt/knsys  N/A  vtbd0p3
+gpt/knefi  N/A  vtbd0p1
+gpt/slot01  N/A  da0p1
+gpt/slot02  N/A  da1p1
+gpt/slot03  N/A  da2p1
+gpt/slot04  N/A  da3p1
+gpt/slot05  N/A  da4p1
+gpt/slot06  N/A  da5p1
+gpt/slot07  N/A  da6p1
+gpt/slot08  N/A  da7p1
+gpt/slot09  N/A  da8p1
+gpt/slot10  N/A  da9p1
+gpt/slot11  N/A  da10p1
+gpt/slot12  N/A  da11p1
