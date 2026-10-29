@@ -4,61 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
-	"strconv"
-	"strings"
 	"time"
 )
 
 // Scrubs, SMART and alerts (docs/04 sections 9.4 and 9.5).
 
-const scrubEvery = 30 * 24 * time.Hour
-
-// ScrubDue: the pool's last finished scrub (or, never scrubbed, its creation) is more than 30
-// days before t, and no scrub or resilver is running. created is the pool's creation (Unix).
-// A resilver replaces the scrub in scan_stats, so after one the pool counts as never scrubbed.
-func ScrubDue(p PoolInfo, created int64, t time.Time) bool {
-	if p.Scan.State == "SCANNING" {
-		return false
-	}
-	ref := created
-	if p.Scan.Function == "SCRUB" && p.Scan.State == "FINISHED" && p.Scan.End > 0 {
-		ref = p.Scan.End
-	}
-	if ref <= 0 {
-		return false
-	}
-	return t.Sub(time.Unix(ref, 0)) > scrubEvery
-}
-
-// scrubTick starts the scrubs that are due; the scheduler calls it at 03:00.
-func (s *Server) scrubTick(t time.Time, res *TickResult) {
-	pools, err := s.dataPools(s.State())
-	if err != nil {
-		res.Errors = append(res.Errors, err.Error())
-		return
-	}
-	for _, p := range pools {
-		if p.Health == "MISSING" {
-			continue
-		}
-		out, err := s.Sys.Run("", "zfs", "get", "-H", "-p", "-o", "value", "creation", p.Name)
-		created, _ := strconv.ParseInt(strings.TrimSpace(out), 10, 64)
-		if err != nil {
-			created = 0
-		}
-		if !ScrubDue(p, created, t) {
-			continue
-		}
-		if _, err := s.run("", "zpool", "scrub", p.Name); err != nil {
-			res.Errors = append(res.Errors, err.Error())
-			continue
-		}
-		s.Log.Printf("started a scrub of %s", p.Name)
-		res.Scrubs = append(res.Scrubs, p.Name)
-	}
-}
-
-// smartTick asks smartctl about every disk of a data pool.
+// smartTick asks smartctl about every disk of a data pool (on the device smartDevices finds).
 func (s *Server) smartTick(t time.Time, res *TickResult) {
 	disks, err := s.disks()
 	if err != nil {
@@ -66,12 +17,19 @@ func (s *Server) smartTick(t time.Time, res *TickResult) {
 		return
 	}
 	m := map[string]SmartInfo{}
+	devs := s.smartDevices(disks)
 	for _, d := range disks {
 		if d.Pool == "" || d.System {
 			continue
 		}
+		args, ok := smartArgs(d.Name, devs)
+		if !ok {
+			m[d.Name] = SmartInfo{Status: "unknown"}
+			res.Smart = append(res.Smart, d.Name+":unknown")
+			continue
+		}
 		// smartctl's exit status is a bit mask; the JSON is what counts.
-		out, _ := s.Sys.Run("", "smartctl", "-H", "-A", "-j", "/dev/"+d.Name)
+		out, _ := s.Sys.Run("", "smartctl", append([]string{"-H", "-A", "-j"}, args...)...)
 		m[d.Name] = ParseSmart(out)
 		res.Smart = append(res.Smart, d.Name+":"+m[d.Name].Status)
 	}

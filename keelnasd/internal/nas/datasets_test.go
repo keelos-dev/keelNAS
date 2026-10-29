@@ -166,12 +166,17 @@ func TestShareForeignDataset(t *testing.T) {
 	if c != 200 || m["name"] != "home" || m["ours"] != false || m["path"] != home || m["pool"] != "tank" || m["owner"] != nil {
 		t.Fatalf("share tank/home: %d %v", c, m)
 	}
+	// only the share's root gets the ACL (and the dataset passes ACLs through); no chown, chmod, …
+	acl := "setfacl -m user:alice:rwxpDdaARWc--s:fd-----:allow,user:bob:r-x---a-R-c--s:fd-----:allow,owner@:rwxpDdaARWcCos:fd-----:allow,group@:--------------:fd-----:allow,everyone@:--------------:fd-----:allow " + home
+	if !fk.Ran("zfs set aclmode=passthrough aclinherit=passthrough tank/home") || !fk.Ran("setfacl -b "+home) || !fk.Ran(acl) {
+		t.Errorf("the share's root did not get its ACL: %v", fk.Calls)
+	}
 	for _, line := range fk.Calls {
-		if strings.HasPrefix(line, "chown") || strings.HasPrefix(line, "chmod") || strings.HasPrefix(line, "zfs set") || strings.HasPrefix(line, "zfs create") || strings.HasPrefix(line, "pw useradd") || strings.HasPrefix(line, "pw groupadd") {
+		if strings.HasPrefix(line, "chown") || strings.HasPrefix(line, "chmod") || strings.HasPrefix(line, "zfs set acl") && !strings.HasSuffix(line, "tank/home") || strings.HasPrefix(line, "zfs create") || strings.HasPrefix(line, "pw useradd") || strings.HasPrefix(line, "pw groupadd") {
 			t.Errorf("sharing changed something: %s", line)
 		}
 	}
-	if want := "[home]\n  path = " + home + "\n  valid users = alice bob\n  write list = alice\n  read only = yes\n  force group = keelnas\n  create mask = 0660\n  directory mask = 2770\n"; !strings.Contains(conf(), want) || strings.Contains(conf(), "force user") {
+	if want := "[home]\n  path = " + home + "\n  valid users = alice bob\n  read only = no\n  vfs objects = shadow_copy2 zfsacl\n  nfs4:mode = special\n  nfs4:acedup = merge\n"; !strings.Contains(conf(), want) || strings.Contains(conf(), "force user") {
 		t.Errorf("smb4.conf lacks %q:\n%s", want, conf())
 	}
 	if c, _ := call("POST", "/v1/shares", `{"dataset":"tank/home","name":"again","rw":["alice"]}`); c != 409 {
@@ -211,7 +216,7 @@ func TestShareForeignDataset(t *testing.T) {
 	if c != 200 || m["dataset"] != "tank/shares/files" || m["ours"] != true || m["path"] != "/shares/files" {
 		t.Fatalf("old form: %d %v", c, m)
 	}
-	if !strings.Contains(conf(), "[files]\n  path = /shares/files\n  valid users = alice\n  write list = alice\n  read only = yes\n  force group = keelnas\n  create mask = 0660\n") {
+	if !strings.Contains(conf(), "[files]\n  path = /shares/files\n  valid users = alice\n  read only = no\n  vfs objects = shadow_copy2 zfsacl\n  nfs4:mode = special\n  nfs4:acedup = merge\n") {
 		t.Errorf("ours keeps today's config:\n%s", conf())
 	}
 	if c, _ := call("DELETE", "/v1/shares/files?purge=1", ""); c != 200 || !fk.Ran("zfs destroy -r tank/shares/files") || s.State().Ours("tank/shares/files") {

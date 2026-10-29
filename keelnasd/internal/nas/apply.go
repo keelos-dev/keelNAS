@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -41,6 +42,9 @@ type Server struct {
 	hwMu sync.Mutex // the hardware page's cached read (hardware.go)
 	hw   *Hardware
 	hwAt time.Time
+	sdev smartDevs // smartctl's device for each disk (nvme.go)
+
+	scrubs ScrubWatch // the checks as they run and the past ones (scrubperf.go)
 
 	hmu          sync.Mutex // the fields below
 	restoredFrom string
@@ -48,9 +52,10 @@ type Server struct {
 	lastSmart    time.Time
 	snapFails    map[string]string
 	alertSince   map[string]time.Time
-	seed         *Seed      // the seed found at the start, nil = none
-	seedDisk     string     // its disk, hidden from the API
-	reg          *Registrar // registration with keel, nil = no seed
+	seed         *Seed          // the seed found at the start, nil = none
+	seedDisk     string         // its disk, hidden from the API
+	reg          *Registrar     // registration with keel, nil = no seed
+	replaced     []replacedDisk // disks being replaced: their labels go when ZFS lets them go (mirror.go)
 }
 
 // NewServer loads (or creates) state.json.
@@ -64,6 +69,7 @@ func NewServer(s sys.Sys, statePath, version string, lg *log.Logger) (*Server, e
 	}
 	srv := &Server{Sys: s, StatePath: statePath, Version: version, Log: lg, st: st, startTime: time.Now(),
 		smart: map[string]SmartInfo{}, snapFails: map[string]string{}, alertSince: map[string]time.Time{}}
+	srv.scrubs.s = srv
 	if hr, ok := s.(sys.HeadReader); ok {
 		srv.Heads = hr
 	}
@@ -332,8 +338,8 @@ func (s *Server) ensureParent(name string, ds map[string]Dataset) error {
 }
 
 // ensureShare checks a share's dataset and returns where it is mounted. A dataset of ours is
-// made again if it is <pool>/shares/<x> and missing, and kept root:keelnas 2770; a dataset
-// keelNAS did not make is never changed.
+// made again if it is <pool>/shares/<x> and missing; the root directory of every share gets
+// the share's owner and ACL (shareRoot): below it a dataset keelNAS did not make is never changed.
 func (s *Server) ensureShare(st *State, sh Share, ds map[string]Dataset) (string, error) {
 	name := sh.Dataset
 	d, ok := ds[name]
@@ -344,7 +350,7 @@ func (s *Server) ensureShare(st *State, sh Share, ds map[string]Dataset) (string
 		case !strings.HasPrefix(d.Mountpoint, "/"):
 			return "", fmt.Errorf("dataset %s is not mounted (mountpoint %s)", name, d.Mountpoint)
 		}
-		return d.Mountpoint, nil
+		return d.Mountpoint, s.shareRoot(st, sh, name, d.Mountpoint, false)
 	}
 	path := d.Mountpoint
 	if !ok {
@@ -369,18 +375,37 @@ func (s *Server) ensureShare(st *State, sh Share, ds map[string]Dataset) (string
 	if !strings.HasPrefix(path, "/") {
 		return "", fmt.Errorf("dataset %s is not mounted (mountpoint %s)", name, path)
 	}
-	// Only when they differ: a chown or chmod changes the directory's ctime, and that is a write
-	// that would make every hourly snapshot look necessary. Any owner in our group is fine (a
-	// dataset's owner can be changed to a user, jobs.go).
-	out, _ := s.Sys.Run("", "stat", "-f", "%Su:%Sg %Mp%Lp", path)
-	if strings.HasSuffix(strings.TrimSpace(out), ":"+Group+" 2770") {
-		return path, nil
+	return path, s.shareRoot(st, sh, name, path, true)
+}
+
+// shareRoot keeps a share's root directory as it must be: owned by root (or a user) in our group
+// (ours only: a dataset keelNAS did not make got its owner from the owner change, jobs.go), the
+// dataset passing ACLs through (chmod keeps them, new files inherit them) and the ACL of
+// ShareACL on it. Only what differs is changed: a chown or setfacl changes the directory's ctime,
+// and that is a write that would make every hourly snapshot look necessary.
+func (s *Server) shareRoot(st *State, sh Share, name, path string, ours bool) error {
+	out, _ := s.Sys.Run("", "stat", "-f", "%Su:%Sg", path)
+	if ours && !strings.HasSuffix(strings.TrimSpace(out), ":"+Group) {
+		if _, err := s.run("", "chown", "root:"+Group, path); err != nil {
+			return err
+		}
 	}
-	if _, err := s.run("", "chown", "root:"+Group, path); err != nil {
-		return "", err
+	out, _ = s.Sys.Run("", "zfs", "get", "-H", "-o", "value", "aclmode,aclinherit", name)
+	if !slices.Equal(strings.Fields(out), []string{"passthrough", "passthrough"}) {
+		if _, err := s.run("", "zfs", "set", "aclmode=passthrough", "aclinherit=passthrough", name); err != nil {
+			return err
+		}
 	}
-	_, err := s.run("", "chmod", "2770", path)
-	return path, err
+	want := ShareACL(st, sh)
+	out, _ = s.Sys.Run("", "getfacl", "-q", path)
+	if slices.Equal(strings.Fields(out), want) {
+		return nil
+	}
+	if _, err := s.run("", "setfacl", "-b", path); err != nil {
+		return err
+	}
+	_, err := s.run("", "setfacl", "-m", strings.Join(want, ","), path)
+	return err
 }
 
 func (s *Server) ensureLUN(l LUN, ds map[string]Dataset) error {

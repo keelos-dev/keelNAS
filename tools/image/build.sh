@@ -8,7 +8,10 @@
 #
 # DISK is a whole disk (vtbd1) that becomes the image: an ESP, swap and a ZFS pool "knsys" with
 # one boot environment per version (knsys/ROOT/VERSION). The system comes from FreeBSD's base
-# packages (pkgbase) and the ports packages, nothing is compiled here.
+# packages (pkgbase) and Samba and smartmontools from our own package repository (docs/05
+# section 11: built with our options by tools/pkgrepo/build.sh, signed with the key whose public
+# half is ./files/keelnas-pkg.pub); nothing is compiled here. PKGREPO is that repository's
+# directory (default the one tools/pkgrepo/build.sh fills on this machine).
 # With AUTHORIZED_KEYS it is a test build: root logs in over ssh with those keys and with the
 # password "keel" on the console.
 set -eu
@@ -19,9 +22,22 @@ KEYS=${3:-}
 POOL=knsys
 MNT=/mnt/kn
 FILES=$(dirname "$0")/files   # copied next to this script
-# FreeBSD-libexecinfo: Samba's libraries need libexecinfo.so, which the minimal set does not have.
-BASE="FreeBSD-set-minimal FreeBSD-kernel-generic FreeBSD-bootloader FreeBSD-zfs FreeBSD-ctl FreeBSD-ssh FreeBSD-libexecinfo"
+# Not FreeBSD-set-minimal but what of it a NAS uses (docs/05 section 11): no locales, rescue,
+# firmware-iwm, at, ppp, wpa, powerd, hyperv-tools, nuageinit, periodic, vi, mandoc, kernel-man,
+# pkg-bootstrap, devmatch, fwget, ufs (the root is ZFS, the ESP is msdosfs in the kernel). pkg
+# brings back what a kept package needs (libmagic and ufs-lib come back that way).
+# FreeBSD-libexecinfo: Samba's libraries need libexecinfo.so. FreeBSD-nvme-tools: nvmecontrol,
+# which keelnasd reads NVMe health with (smartctl cannot open nda, docs/04 section 15); not in
+# set-minimal either.
+BASE="FreeBSD-runtime FreeBSD-clibs FreeBSD-rc FreeBSD-devd FreeBSD-dhclient FreeBSD-geom
+ FreeBSD-zfs FreeBSD-zfs-lib FreeBSD-ctl FreeBSD-ssh FreeBSD-bootloader FreeBSD-efi-tools
+ FreeBSD-caroot FreeBSD-certctl FreeBSD-cron FreeBSD-newsyslog FreeBSD-syslogd FreeBSD-resolvconf
+ FreeBSD-pam FreeBSD-pam-lib FreeBSD-zoneinfo FreeBSD-openssl FreeBSD-openssl-lib FreeBSD-zlib
+ FreeBSD-xz FreeBSD-xz-lib FreeBSD-zstd FreeBSD-zstd-lib FreeBSD-bzip2 FreeBSD-bzip2-lib
+ FreeBSD-ncurses FreeBSD-ncurses-lib FreeBSD-utilities FreeBSD-fetch FreeBSD-vt-data
+ FreeBSD-libexecinfo FreeBSD-nvme-tools FreeBSD-kernel-generic"
 PORTS="samba422 smartmontools"
+PKGREPO=${PKGREPO:-/usr/local/poudriere/data/packages/kn15-kn}
 
 say() { echo "== $*"; }
 # IP_VERSION=4: the control machine's IPv6 is a slow tunnel and the builder inherits it; a ports fetch stalled on it (2026-10-14)
@@ -52,15 +68,50 @@ say "base system"
 mkdir -p $MNT/usr/share/keys
 cp -R /usr/share/keys/pkg* $MNT/usr/share/keys/
 $PKG install -r FreeBSD-base $BASE
-say "ports packages"
-$PKG install -r FreeBSD-ports $PORTS
+say "base: $($PKG query '%sb' | awk '{s+=$1} END {printf "%d packages, %d MiB", NR, s/1048576}')"
+say "packages from $PKGREPO"
+# Only our repository in REPOS_DIR: nothing comes from FreeBSD-ports.
+R=$(mktemp -d)
+cp "$FILES/keelnas-pkg.pub" $R/keelnas-pkg.pub
+cat > $R/keelnas.conf <<EOF
+keelnas: { url: "file://$PKGREPO", signature_type: "pubkey", pubkey: "$R/keelnas-pkg.pub", enabled: yes }
+EOF
+pkg --rootdir $MNT -o ASSUME_ALWAYS_YES=yes -o IGNORE_OSVERSION=yes -o REPOS_DIR=$R install -r keelnas $PORTS
+rm -rf $R
+say "all: $($PKG query '%sb' | awk '{s+=$1} END {printf "%d packages, %d MiB", NR, s/1048576}')"
 $PKG clean -a >/dev/null 2>&1 || true
 rm -rf $MNT/var/cache/pkg/* $MNT/var/db/pkg/repos
+# licence notices (keelOS docs/45 C): the packages of this image with their licences, the written offer
+# of source code; the packages' own licence files in /usr/local/share/licenses stay. The list is also
+# printed for the log (tools/licenses/pkglist-from-log.sh), the source bundle is made from it.
+DOCD=$MNT/usr/local/share/doc/keelnas
+mkdir -p $DOCD
+$PKG query '%n\t%v\t%o\t%L\t%l' | sort > $DOCD/packages.txt
+cat > $DOCD/README.txt <<'EOT'
+keelNAS: third-party software and source code
+==============================================
+This image is FreeBSD (base packages) plus FreeBSD ports packages, each under its own licence:
+packages.txt lists every package with its version, port and licence; the licence files are in
+/usr/local/share/licenses. Some are under the GNU GPL, LGPL or the Mozilla Public License.
+Samba and smartmontools come from our own package repository, built with poudriere from the FreeBSD ports branch 2026Q4 with our
+options (the options and make.conf are in the source bundle).
+The complete corresponding source code of those packages, exactly as built (the ports' Makefiles and
+patches, the upstream source files, our build options), is published for every version at
+https://keelos.dev/sources/ as keelnas-<version>-sources.tar.xz, and kept for at least three years
+after we last distribute that version (GPLv2 section 3 equivalent access; GPLv3 section 6; LGPL).
+If you cannot download it, write to hello@keelos.dev with the version and we will send it on a
+physical medium for the cost of doing so.
+EOT
+echo PACKAGES-BEGIN; cat $DOCD/packages.txt; echo PACKAGES-END
 
 say "shared libraries"
 # A ports package may need a base library that no base package above brought in.
 # ldd needs the run-time linker's hints, which rc.d/ldconfig makes at boot: make them here, for the check only.
-chroot $MNT /bin/sh -c '/sbin/ldconfig -elf /lib /usr/lib /usr/local/lib $(cat /usr/local/libdata/ldconfig/* 2>/dev/null)'
+# Samba built with its own talloc/tdb/tevent (BUNDLED_*, docs/05 section 11) keeps them in
+# samba4/private; a few of its libraries and ldb modules have no RUNPATH to there and find them
+# at run time because the program that loads them already has them loaded. ldd on such a library
+# alone does not know that: give the check the private directory too.
+chroot $MNT /bin/sh -c '/sbin/ldconfig -elf /lib /usr/lib /usr/local/lib /usr/local/lib/samba4/private $(cat /usr/local/libdata/ldconfig/* 2>/dev/null)'
 MISSING=$(chroot $MNT /bin/sh -c 'find /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/libexec /usr/bin /usr/sbin /bin /sbin -type f \( -perm -u+x -o -name "*.so*" \) 2>/dev/null | xargs ldd 2>/dev/null' | grep "not found" | sed 's/ (.*//' | sort -u || true)
 rm -f $MNT/var/run/ld-elf.so.hints
 if [ -n "$MISSING" ]; then
@@ -91,6 +142,8 @@ syslogd_flags="-ss"
 dumpdev="NO"
 clear_tmp_enable="YES"
 EOF
+# No FreeBSD-periodic in the image (docs/05 section 11): its crontab lines would fail every day.
+sed -i '' '/[[:space:]]periodic[[:space:]]/d' $MNT/etc/crontab
 cat > $MNT/etc/fstab <<EOF
 /dev/gpt/knswap  none  swap  sw  0  0
 tmpfs            /tmp  tmpfs rw,mode=1777  0  0

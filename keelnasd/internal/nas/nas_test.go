@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"slices"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -93,9 +94,9 @@ func TestSmbConfig(t *testing.T) {
 		"map to guest = Never",
 		"passdb backend = tdbsam:/var/db/keelnas/samba/passdb.tdb",
 		"private dir = /var/db/keelnas/samba",
-		"[docs]\n  path = /shares/docs\n  valid users = alice bob\n  write list = alice\n  read only = yes\n  force group = keelnas\n  create mask = 0660\n  directory mask = 2770\n",
+		"[docs]\n  path = /shares/docs\n  valid users = alice bob\n  read only = no\n  vfs objects = shadow_copy2 zfsacl\n  nfs4:mode = special\n  nfs4:acedup = merge\n",
 		// a dataset keelNAS did not make (its owner changed to a user): the same as ours
-		"[home]\n  path = /pools/tank/usr/home\n  valid users = alice\n  write list = alice\n  read only = yes\n  force group = keelnas\n  create mask = 0660\n  directory mask = 2770\n",
+		"[home]\n  path = /pools/tank/usr/home\n  valid users = alice\n  read only = no\n  vfs objects = shadow_copy2 zfsacl\n  nfs4:mode = special\n  nfs4:acedup = merge\n",
 		// not mounted: off
 		"[gone]\n  # dataset tank/gone is not mounted\n  path = /nonexistent\n  available = no\n[home]",
 	} {
@@ -657,4 +658,45 @@ func TestUnknownPathAndBadJSON(t *testing.T) {
 		t.Errorf("unknown field: %d", c)
 	}
 
+}
+
+func TestShareACL(t *testing.T) {
+	st := &State{Users: []User{{Name: "alice", UID: 2001}, {Name: "bob", UID: 2002}},
+		Directory: &Directory{Users: []DirUser{{Name: "eve", UID: 70000}, {Name: "dave", UID: 70001, Problem: "a local user has the name"}},
+			Groups: []DirGroup{{Name: "office", GID: 70100}, {Name: "wheel", GID: 0, Problem: "a system group has the name"}}}}
+	got := ShareACL(st, Share{Name: "docs", RW: []string{"bob", "@office", "@wheel"}, RO: []string{"alice", "eve", "dave", "bob", "nobody"}})
+	want := []string{
+		"group:office:rwxpDdaARWc--s:fd-----:allow",
+		"user:bob:rwxpDdaARWc--s:fd-----:allow",
+		"user:alice:r-x---a-R-c--s:fd-----:allow",
+		"user:eve:r-x---a-R-c--s:fd-----:allow",
+		"owner@:rwxpDdaARWcCos:fd-----:allow",
+		"group@:--------------:fd-----:allow",
+		"everyone@:--------------:fd-----:allow",
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("got %q", got)
+	}
+	// set already: nothing is run (a setfacl would change the ctime)
+	f := sys.NewFake()
+	f.Handle = func(line, _ string) (string, error, bool) {
+		switch {
+		case strings.HasPrefix(line, "stat -f %Su:%Sg "):
+			return "root:keelnas\n", nil, true
+		case strings.HasPrefix(line, "zfs get -H -o value aclmode,aclinherit "):
+			return "passthrough\npassthrough\n", nil, true
+		case strings.HasPrefix(line, "getfacl -q "):
+			return "         " + strings.Join(want, "\n            ") + "\n", nil, true
+		}
+		return "", nil, false
+	}
+	s := &Server{Sys: f, Log: log.New(io.Discard, "", 0)}
+	if err := s.shareRoot(st, Share{Name: "docs", RW: []string{"bob", "@office"}, RO: []string{"alice", "eve"}}, "tank/shares/docs", "/shares/docs", true); err != nil {
+		t.Fatal(err)
+	}
+	for _, line := range f.Calls {
+		if strings.HasPrefix(line, "chown") || strings.HasPrefix(line, "zfs set") || strings.HasPrefix(line, "setfacl") {
+			t.Errorf("changed: %s", line)
+		}
+	}
 }

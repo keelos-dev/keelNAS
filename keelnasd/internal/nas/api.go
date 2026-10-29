@@ -104,6 +104,17 @@ func (s *Server) Handler() http.Handler {
 	m.HandleFunc("GET /v1/storage", s.wrap(s.getStorage))
 	m.HandleFunc("POST /v1/storage", s.wrap(s.postStorage))
 	m.HandleFunc("POST /v1/storage/{name}/protect", s.wrap(s.postProtect))
+	m.HandleFunc("GET /v1/storage/{pool}/scrub", s.wrap(s.getScrub))
+	m.HandleFunc("PUT /v1/storage/{pool}/scrub", s.wrap(s.putScrub))
+	m.HandleFunc("GET /v1/storage/{pool}/scrub/perf", s.wrap(s.getScrubPerf))
+	m.HandleFunc("POST /v1/storage/{pool}/scrub/{what}", s.wrap(s.postScrubAction))
+	m.HandleFunc("POST /v1/storage/{pool}/attach", s.wrap(s.postAttach))
+	m.HandleFunc("POST /v1/storage/{pool}/detach", s.wrap(s.postDetach))
+	m.HandleFunc("POST /v1/storage/{pool}/replace", s.wrap(s.postReplace))
+	m.HandleFunc("POST /v1/storage/{pool}/export", s.wrap(s.postExport))
+	m.HandleFunc("POST /v1/storage/{pool}/expand", s.wrap(s.postExpand))
+	m.HandleFunc("DELETE /v1/storage/{pool}", s.wrap(s.deleteStorage))
+	m.HandleFunc("POST /v1/disks/{name}/labelclear", s.wrap(s.postLabelclear))
 	m.HandleFunc("GET /v1/storage/{pool}/datasets", s.wrap(s.getDatasets))
 	m.HandleFunc("POST /v1/storage/{pool}/datasets", s.wrap(s.postDataset))
 	// {name} is the whole dataset name with its slashes escaped (tank%2Fhome)
@@ -339,6 +350,9 @@ func (s *Server) allDisks() ([]Disk, error) {
 	}
 	for _, p := range pools {
 		for _, m := range p.Members {
+			if m.Missing { // its old path may be another disk's name now
+				continue
+			}
 			d := DiskOf(m.Path, labels, names)
 			for i := range disks {
 				if disks[i].Name == d {
@@ -366,11 +380,32 @@ func (s *Server) getDisks(r *http.Request) (any, error) {
 type StorageDisk struct {
 	Name  string `json:"name"`
 	State string `json:"state"`
+	// GUID: the device's guid (detach and replace take it, or the name); Vdev: its top-level
+	// vdev (mirror-0, or its own name for a single disk); Missing: not there since the pool was
+	// imported (Name is then the guid, Was the disk it was); Size: the device's size (phys_space)
+	GUID    string `json:"guid"`
+	Vdev    string `json:"vdev"`
+	Missing bool   `json:"missing,omitempty"`
+	Was     string `json:"was,omitempty"`
+	Size    int64  `json:"size"`
+}
+
+// StorageVdev is a top-level vdev: type disk, mirror, raidz1…; size its allocatable space.
+type StorageVdev struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+	Size int64  `json:"size"`
 }
 
 type Storage struct {
 	PoolSummary
 	Disks []StorageDisk `json:"disks"`
+	// Scan: the last or running scrub or resilver with its progress (scrub.go ScanView)
+	Scan  ScanView      `json:"scan"`
+	Vdevs []StorageVdev `json:"vdevs"`
+	// Expand: bytes the pool gains with POST …/expand (its disks grew, a bigger disk replaced a
+	// smaller one); 0: nothing to gain (pools.go poolGrowth)
+	Expand int64 `json:"expand"`
 }
 
 func (s *Server) storage(st *State) ([]Storage, error) {
@@ -388,13 +423,21 @@ func (s *Server) storage(st *State) ([]Storage, error) {
 	}
 	res := []Storage{}
 	for _, p := range pools {
-		x := Storage{PoolSummary: PoolSummary{p.Name, p.Health, p.Size, p.Used, p.Free, p.Protected}, Disks: []StorageDisk{}}
+		x := Storage{PoolSummary: PoolSummary{p.Name, p.Health, p.Size, p.Used, p.Free, p.Protected}, Disks: []StorageDisk{},
+			Scan: ScanFromStats(p.Scan, s.now()), Vdevs: []StorageVdev{}, Expand: poolGrowth(p)}
+		for _, t := range p.Tops {
+			x.Vdevs = append(x.Vdevs, StorageVdev{t.Name, t.Type, t.Size})
+		}
 		for _, m := range p.Members {
 			n := DiskOf(m.Path, labels, names)
 			if n == "" {
 				n = strings.TrimPrefix(m.Path, "/dev/")
 			}
-			x.Disks = append(x.Disks, StorageDisk{n, m.State})
+			d := StorageDisk{Name: n, State: m.State, GUID: m.GUID, Vdev: m.Top, Size: m.Size}
+			if m.Missing {
+				d.Name, d.Missing, d.Was = m.GUID, true, strings.TrimPrefix(m.Path, "/dev/")
+			}
+			x.Disks = append(x.Disks, d)
 		}
 		res = append(res, x)
 	}

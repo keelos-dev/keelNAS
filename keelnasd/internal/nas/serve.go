@@ -38,6 +38,7 @@ func (s *Server) Serve(socket string) error {
 		s.Log.Printf("keelnasd %s: applied the state, %d errors", s.Version, len(errs))
 	}
 	go s.Schedule()
+	go s.scrubs.Loop()
 
 	// The seed disk (docs/04 section 10): its key and port, then the registration with keel.
 	sd := s.UseSeed()

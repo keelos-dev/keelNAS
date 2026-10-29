@@ -227,8 +227,13 @@ func TestDirectorySync(t *testing.T) {
 		t.Errorf("a user with a problem: %d", c)
 	}
 	conf := string(f.Files[SmbConf])
-	if !strings.Contains(conf, "valid users = +office alice eve\n") || !strings.Contains(conf, "write list = +office alice\n") {
+	if !strings.Contains(conf, "valid users = +office alice eve\n") || strings.Contains(conf, "write list") {
 		t.Errorf("smb4.conf:\n%s", conf)
+	}
+	// who writes is the root directory's ACL: the group and alice modify, eve reads
+	acl := "setfacl -m group:office:rwxpDdaARWc--s:fd-----:allow,user:alice:rwxpDdaARWc--s:fd-----:allow,user:eve:r-x---a-R-c--s:fd-----:allow,owner@:rwxpDdaARWcCos:fd-----:allow,group@:--------------:fd-----:allow,everyone@:--------------:fd-----:allow /shares/docs"
+	if !f.Ran(acl) {
+		t.Errorf("the share's ACL: %v", f.Calls)
 	}
 	// keelAuth's users are not changed here
 	if c, _ := call("PUT", "/v1/users/alice", `{"password":"x"}`); c != 409 {

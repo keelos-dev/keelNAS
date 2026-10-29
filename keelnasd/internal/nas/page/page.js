@@ -45,6 +45,39 @@ const words = {
   "nas.protectbtn": "Protect",
   "nas.protecttitle": "Protect {0}",
   "nas.protectnote": "The disk becomes the mirror of this storage. Everything on it is erased.",
+  "scrub.every.auto": "Every 30 days",
+  "nas.scrub.auto": "Every 30 days after the last check, at {0}",
+  "nas.scrub.utc": "UTC",
+  "nas.scrub.note": "A check reads all data on the storage and repairs what a mirror can repair. Shares stay available; they are slower while it runs. \"Every 30 days\" checks 30 days after the last check. Times are UTC: keelNAS has no time zone of its own.",
+  "nas.scrub.nobytes": "took {0} (not watched: no speed)",
+  "nas.scrub.left": "{0} left",
+  "nas.scrub.lastnone": "Not checked yet.",
+  "nas.scrub.superseded": "another scan took its place before its end was seen",
+  "nas.dev.disk": "Disk",
+  "nas.dev.state": "State",
+  "nas.dev.size": "Size",
+  "nas.attach.title": "Add a disk to {0}",
+  "nas.attach.hint": "The disk becomes one more copy of the data (a mirror); the storage copies everything onto it, which shows here as a resilver. Everything on the disk is erased. It must be at least as large as the disks it mirrors.",
+  "nas.detachq": "Take {0} out of {1}? The data stays on the other disk(s); with one disk left the storage has no second copy until a disk is added again.",
+  "nas.replace": "Replace",
+  "nas.replace.title": "Replace {0}",
+  "nas.replace.hint": "The new disk takes the place of {0}: the storage copies the data onto it (a resilver) and then lets the old disk go. Everything on the new disk is erased; it must be at least as large.",
+  "nas.replace.missing": "{0} (missing, was {1})",
+  "nas.export": "Export",
+  "nas.export.title": "Export {0}",
+  "nas.export.note": "The storage leaves keelNAS with its data, for example to move its disks to another machine. Its shares and LUNs must be removed first. It can be imported again from \"Pools found on the disks\".",
+  "nas.delete": "Delete",
+  "nas.delete.title": "Delete {0}",
+  "nas.delete.note": "Everything on this storage is destroyed and its disks are free again. This cannot be undone. Its shares and LUNs must be removed first.",
+  "nas.confirmname": "Type the storage's name ({0}) to confirm",
+  "nas.expand.note": "The storage can grow by {0}: its disks are bigger than it uses (a bigger disk replaced a smaller one).",
+  "nas.expandq": "Grow {0} to the full size of its disks (zpool online -e)? Nothing is erased; it cannot be shrunk again.",
+  "nas.expanded": "{0} is {1} now",
+  "nas.labelclear": "Clear labels",
+  "nas.labelclear.title": "Clear the ZFS labels on {0}",
+  "nas.labelclear.note": "Disk {0} carries the label of pool {1}, which is not imported. Clearing it destroys what that pool had on this disk; afterwards the disk is free for storage.",
+  "nas.labelclear.confirm": "Type {0} to confirm",
+  "nas.devhelp": "Add: one more copy of the data (a single disk becomes a mirror). Detach: a disk leaves its mirror (never the last working one). Replace: a new disk takes the place of a missing, failing or smaller one.",
   "nas.pickdisks": "One disk, or two that hold the same.",
   "nas.keepnote": "0 = none of that kind. Snapshots taken by hand are never removed by themselves.",
   "nas.newuser": "New user",
@@ -76,7 +109,7 @@ const words = {
   "nas.class.manual": "by hand",
   "nas.delsnapq": "Delete the snapshot of {0}?",
   "nas.snapnote": "In Windows: right-click a file or folder of the share, Properties, Previous Versions.",
-  "nas.keep": "Automatic snapshots kept",
+  "nas.keep": "Automatic snapshot settings",
   "nas.keep.hourly": "Hourly",
   "nas.keep.daily": "Daily",
   "nas.keep.weekly": "Weekly",
@@ -265,6 +298,7 @@ const words = {
   "nas.hw.passed": "OK",
   "nas.hw.failed": "FAILING",
   "nas.hw.nosmart": "no SMART",
+  "nas.hw.h.nvmelog": "NVMe health log (log page 2)",
   "nas.hw.h.title": "{0}: health details"
  },
  "zh": {
@@ -288,6 +322,39 @@ const words = {
   "nas.protectbtn": "加保护",
   "nas.protecttitle": "给{0}加保护",
   "nas.protectnote": "这块盘会成为这个存储的镜像。盘上原有的内容会被清掉。",
+  "scrub.every.auto": "每 30 天",
+  "nas.scrub.auto": "上次检查 30 天后，{0}",
+  "nas.scrub.utc": "UTC",
+  "nas.scrub.note": "检查会把存储上的数据全部读一遍，镜像能修的就修好。共享照常能用，只是检查时慢一些。\"每 30 天\"是上一次检查满 30 天后再查。时间是 UTC：keelNAS 没有自己的时区。",
+  "nas.scrub.nobytes": "用了 {0}（没有记录速度）",
+  "nas.scrub.left": "还要 {0}",
+  "nas.scrub.lastnone": "还没检查过。",
+  "nas.scrub.superseded": "还没看到结束，就被下一次扫描接替了",
+  "nas.dev.disk": "盘",
+  "nas.dev.state": "状态",
+  "nas.dev.size": "大小",
+  "nas.attach.title": "给 {0} 加一块盘",
+  "nas.attach.hint": "这块盘成为数据的又一份副本（镜像）；存储会把数据全部复制上去，这里显示为 resilver。盘上原有的内容会被清掉。它不能比要镜像的盘小。",
+  "nas.detachq": "把 {0} 从 {1} 里拿出来？数据还在别的盘上；只剩一块盘时，在再加一块盘之前存储没有第二份。",
+  "nas.replace": "更换",
+  "nas.replace.title": "更换 {0}",
+  "nas.replace.hint": "新盘接替 {0}：存储把数据复制上去（resilver），完成后放掉旧盘。新盘上原有的内容会被清掉；它不能比旧盘小。",
+  "nas.replace.missing": "{0}（不在了，原来是 {1}）",
+  "nas.export": "导出",
+  "nas.export.title": "导出 {0}",
+  "nas.export.note": "存储连同数据离开 keelNAS，比如要把它的盘搬到另一台机器。要先删掉它上面的共享和 LUN。以后可以在\"盘上找到的池\"里重新导入。",
+  "nas.delete": "删除",
+  "nas.delete.title": "删除 {0}",
+  "nas.delete.note": "这个存储上的一切都会被销毁，它的盘重新空出来。不能撤销。要先删掉它上面的共享和 LUN。",
+  "nas.confirmname": "输入存储的名字（{0}）确认",
+  "nas.expand.note": "这个存储还能大 {0}：它的盘比它用的大（大盘换了小盘）。",
+  "nas.expandq": "把 {0} 扩到盘的全部大小（zpool online -e）？什么都不会被清掉；以后不能再缩小。",
+  "nas.expanded": "{0} 现在是 {1}",
+  "nas.labelclear": "清除标签",
+  "nas.labelclear.title": "清除 {0} 上的 ZFS 标签",
+  "nas.labelclear.note": "盘 {0} 上有池 {1} 的标签，这个池没有导入。清除后这个池在这块盘上的东西就没了；之后这块盘可以用来建存储。",
+  "nas.labelclear.confirm": "输入 {0} 确认",
+  "nas.devhelp": "加盘：数据多一份副本（单盘变镜像）。拿出：一块盘离开镜像（最后一块能用的盘不行）。更换：新盘接替不在了、坏了或者较小的盘。",
   "nas.pickdisks": "选一块盘，或者两块盘存同样的内容。",
   "nas.keepnote": "0 = 不做这一种。手动打的快照不会被自动删除。",
   "nas.newuser": "新建用户",
@@ -319,7 +386,7 @@ const words = {
   "nas.class.manual": "手动",
   "nas.delsnapq": "删除 {0} 的这个快照？",
   "nas.snapnote": "在 Windows 里：右键点共享里的文件或文件夹，属性，以前的版本。",
-  "nas.keep": "自动快照保留多少个",
+  "nas.keep": "自动快照设定",
   "nas.keep.hourly": "每小时的",
   "nas.keep.daily": "每天的",
   "nas.keep.weekly": "每周的",
@@ -508,6 +575,7 @@ const words = {
   "nas.hw.passed": "正常",
   "nas.hw.failed": "故障",
   "nas.hw.nosmart": "无 SMART",
+  "nas.hw.h.nvmelog": "NVMe 健康日志（log page 2）",
   "nas.hw.h.title": "{0} 的健康详情"
  },
  "ja": {
@@ -531,6 +599,39 @@ const words = {
   "nas.protectbtn": "保護する",
   "nas.protecttitle": "{0} を保護",
   "nas.protectnote": "このディスクがストレージのミラーになります。ディスクの内容は消去されます。",
+  "scrub.every.auto": "30 日ごと",
+  "nas.scrub.auto": "前回のチェックから 30 日後、{0}",
+  "nas.scrub.utc": "UTC",
+  "nas.scrub.note": "チェックはストレージ上の全データを読み、ミラーで直せるものを修復します。共有は使えますが、実行中は遅くなります。「30 日ごと」は前回のチェックから 30 日後に行います。時刻は UTC です（keelNAS には独自のタイムゾーンがありません）。",
+  "nas.scrub.nobytes": "{0} かかりました（速度の記録なし）",
+  "nas.scrub.left": "残り {0}",
+  "nas.scrub.lastnone": "まだチェックしていません。",
+  "nas.scrub.superseded": "終了を確認する前に次のスキャンに置き換わりました",
+  "nas.dev.disk": "ディスク",
+  "nas.dev.state": "状態",
+  "nas.dev.size": "サイズ",
+  "nas.attach.title": "{0} にディスクを追加",
+  "nas.attach.hint": "ディスクはデータのもう一つのコピー（ミラー）になります。データがすべてコピーされ、ここに resilver として表示されます。ディスクの内容は消去されます。ミラーするディスク以上の大きさが必要です。",
+  "nas.detachq": "{0} を {1} から外しますか？データは他のディスクに残ります。ディスクが一つになると、再び追加するまで二つ目のコピーはありません。",
+  "nas.replace": "交換",
+  "nas.replace.title": "{0} を交換",
+  "nas.replace.hint": "新しいディスクが {0} の代わりになります。データがコピーされ（resilver）、終わると古いディスクは外れます。新しいディスクの内容は消去されます。同じ大きさ以上が必要です。",
+  "nas.replace.missing": "{0}（見つからない、以前は {1}）",
+  "nas.export": "エクスポート",
+  "nas.export.title": "{0} をエクスポート",
+  "nas.export.note": "ストレージをデータごと keelNAS から外します（ディスクを別のマシンに移すときなど）。先に共有と LUN を削除してください。「ディスク上で見つかったプール」から再びインポートできます。",
+  "nas.delete": "削除",
+  "nas.delete.title": "{0} を削除",
+  "nas.delete.note": "このストレージ上のすべてが破棄され、ディスクは空きに戻ります。元に戻せません。先に共有と LUN を削除してください。",
+  "nas.confirmname": "確認のためストレージ名（{0}）を入力",
+  "nas.expand.note": "このストレージは {0} 大きくできます：ディスクが使用分より大きいです（小さいディスクを大きいものに交換した）。",
+  "nas.expandq": "{0} をディスクの全容量まで拡張しますか（zpool online -e）？何も消去されません。元に縮小はできません。",
+  "nas.expanded": "{0} は {1} になりました",
+  "nas.labelclear": "ラベルを消去",
+  "nas.labelclear.title": "{0} の ZFS ラベルを消去",
+  "nas.labelclear.note": "ディスク {0} にはインポートされていないプール {1} のラベルがあります。消去するとそのプールのこのディスク上のデータは失われ、ディスクはストレージに使えるようになります。",
+  "nas.labelclear.confirm": "確認のため {0} を入力",
+  "nas.devhelp": "追加：データのコピーを一つ増やします（単一ディスクがミラーになります）。外す：ディスクをミラーから外します（最後に動いているディスクは不可）。交換：見つからない・故障・小さいディスクを新しいディスクに置き換えます。",
   "nas.pickdisks": "1 台、または同じ内容を保存する 2 台を選びます。",
   "nas.keepnote": "0 = その種類は作成しません。手動のスナップショットは自動では削除されません。",
   "nas.newuser": "ユーザーを作成",
@@ -562,7 +663,7 @@ const words = {
   "nas.class.manual": "手動",
   "nas.delsnapq": "{0} のこのスナップショットを削除しますか？",
   "nas.snapnote": "Windows では、共有内のファイルやフォルダーを右クリックし、プロパティ、以前のバージョン。",
-  "nas.keep": "自動スナップショットの保存数",
+  "nas.keep": "自動スナップショット設定",
   "nas.keep.hourly": "毎時",
   "nas.keep.daily": "毎日",
   "nas.keep.weekly": "毎週",
@@ -751,6 +852,7 @@ const words = {
   "nas.hw.passed": "正常",
   "nas.hw.failed": "異常",
   "nas.hw.nosmart": "SMART なし",
+  "nas.hw.h.nvmelog": "NVMe ヘルスログ（log page 2）",
   "nas.hw.h.title": "{0} の状態の詳細"
  }
 };
@@ -863,6 +965,177 @@ function AddProtection({ pool, label, free, onClose, onDone }) {
   <//>`;
 }
 
+// ---- a storage's pool features (keelNAS docs/04 §17), ported from keelOS's storage page
+// (storage.js Scrub, ScrubPlan, the attach and detach controls; scrubperf.js ScrubLive and
+// ScrubHistory without the chart, which is not in the contract with keel) ----
+
+// Help: a "?" that opens its explanation (keel's ui.js Help is Info with this mark)
+const Help = ({ children }) => html`<${Info} mark="?" cls="help">${children}<//>`;
+const p2 = (v) => String(v).padStart(2, "0");
+// fmtDur: seconds as "2:43" or "1:02:43" (keel's scrubperf.js)
+function fmtDur(s) {
+  s = Math.max(0, Math.round(s || 0));
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+  return h ? `${h}:${p2(m)}:${p2(x)}` : `${m}:${p2(x)}`;
+}
+const fmtRate = (v) => (v ? gib(v) + "/s" : "–");
+const utcHour = (h) => p2(h) + ":00 " + t("nas.scrub.utc");
+const scanBusy = (sc) => !!sc && (sc.state === "running" || sc.state === "paused");
+
+// ScanProgress: a running (or paused) scrub or resilver: bar, how much, speed, time left, and
+// each disk's read rate when the watch has samples (GET …/scrub/perf live.devs)
+function ScanProgress({ sc, devs }) {
+  const head = sc.state === "paused" ? t("scrub.paused") : t("scrub.running." + (sc.kind || "scrub"));
+  const left = sc.state === "running" && sc.eta_s >= 0 ? t("nas.scrub.left", fmtDur(sc.eta_s)) : sc.state === "running" ? t("scrub.noeta") : "";
+  const top = Math.max(1, ...(devs || []).map((d) => Math.max(d.now, d.avg)));
+  return html`<div class="scrub-live">
+    <div class="small"><b>${head}</b> · ${(sc.pct || 0).toFixed(1)}% · ${t("scrub.ofbytes", gib(sc.issued), gib(sc.total))} · ${fmtRate(sc.rate)}${left ? " · " + left : ""}</div>
+    <${Bar} pct=${sc.pct || 0} />
+    ${devs && devs.length > 0 && html`<table class="data plain small scrub-devs"><tbody>${devs.map((d) => html`<tr>
+      <td class="mono">${d.name}</td><td class="scrub-devbar"><${Bar} pct=${(100 * d.now) / top} /></td><td class="num">${t("scrub.devnow", fmtRate(d.now), fmtRate(d.avg))}</td></tr>`)}</tbody></table>`}
+  </div>`;
+}
+
+const runResult = (r) => (r.superseded ? t("nas.scrub.superseded") : r.canceled ? t("scrub.canceled") : r.errors ? t("scrub.found", r.errors, gib(r.repaired)) : r.repaired ? t("scrub.fixed", gib(r.repaired)) : t("scrub.clean"));
+
+// Scrub: the storage's check: the plan and the next one, now / stop, the running one or the
+// last ones (keel's Scrub and ScrubHistory)
+function Scrub({ pool, sc, admin, tick, onChange }) {
+  const [st, setSt] = useState(null);
+  const [perf, setPerf] = useState(null);
+  const [edit, setEdit] = useState(false);
+  const [hist, setHist] = useState(false);
+  const base = NB + "/storage/" + enc(pool) + "/scrub";
+  useEffect(() => {
+    api("GET", base).then(setSt).catch(() => setSt(null)); // an older keelnasd: no plan, no buttons
+    api("GET", base + "/perf").then(setPerf).catch(() => setPerf(null));
+  }, [tick, pool]);
+  if (!st) return null;
+  const go = async (what) => {
+    try { await api("POST", base + "/" + what); onChange(); } catch (e) { fail(e); }
+  };
+  const s = st.schedule || {};
+  const plan = s.every === "off" ? t("scrub.off") : s.every === "auto" ? t("nas.scrub.auto", utcHour(s.hour))
+    : t(s.every === "week" ? "scrub.weekly" : "scrub.monthly", t("scrub.wd." + s.weekday), utcHour(s.hour));
+  const runs = (perf && perf.runs) || [];
+  const done = runs.filter((r) => !r.canceled && !r.superseded);
+  const last = done[done.length - 1];
+  const scan = sc || st.scan || {};
+  return html`<div class="pool-scrub">
+    <div class="row-head"><b class="small">${t("scrub.title")}</b>
+      <span class="small muted">${plan}${s.once ? " · " + t("scrub.once", fmtTime(s.once)) : ""}${st.next ? " · " + t("scrub.next", fmtTime(st.next)) : ""}</span>
+      <span class="spacer"></span>
+      ${admin && html`<span>${scanBusy(scan) && scan.kind === "scrub"
+        ? html`<button class="btn" onClick=${() => go("stop")}>${t("scrub.stop")}</button>`
+        : html`<button class="btn" disabled=${scanBusy(scan)} onClick=${() => go("start")}>${t("scrub.now")}</button>`}
+        <button class="btn" onClick=${() => setEdit(true)}>${t("scrub.plan")}…</button></span>`}
+      <${Help}><p>${t("nas.scrub.note")}</p>${!last && html`<p>${t("scrub.nohist")}</p>`}<//></div>
+    ${scanBusy(scan) && scan.kind === "scrub" ? html`<${ScanProgress} sc=${scan} devs=${perf && perf.live && perf.live.devs} />`
+      : last ? html`<div class="small"><span class="muted">${t("scrub.lastat", fmtTime(last.end))}:</span> ${last.bytes && last.avg
+          ? t("scrub.lastsum", gib(last.bytes), fmtDur(last.seconds), fmtRate(last.avg), fmtRate(last.peak))
+          : t("nas.scrub.nobytes", fmtDur(last.seconds))} · <span class=${last.errors ? "error" : ""}>${runResult(last)}</span>
+          ${runs.length > 1 && html` <button type="button" class="ghost small" onClick=${() => setHist(!hist)}>${t("scrub.history")} (${runs.length}) ${hist ? "▴" : "▾"}</button>`}</div>`
+      : scan.kind === "scrub" && scan.state === "finished" ? html`<div class="small muted">${t("scrub.lastat", fmtTime(scan.end))}: ${fmtDur(scan.seconds)} · ${scan.errors ? t("scrub.found", scan.errors, gib(scan.repaired)) : t("scrub.clean")}</div>`
+      : html`<div class="small muted">${t("nas.scrub.lastnone")}</div>`}
+    ${hist && html`<div class="table-wrap"><table class="data plain small">
+      <thead><tr><th>${t("scrub.col.when")}</th><th>${t("scrub.col.took")}</th><th>${t("scrub.col.size")}</th><th>${t("scrub.col.avg")}</th><th>${t("scrub.col.peak")}</th><th>${t("scrub.col.result")}</th></tr></thead>
+      <tbody>${[...runs].reverse().map((r) => html`<tr><td>${fmtTime(r.end)}${r.kind === "resilver" ? " · resilver" : ""}</td>
+        <td>${fmtDur(r.seconds)}</td><td>${r.bytes ? gib(r.bytes) : "–"}</td><td>${fmtRate(r.avg)}</td><td>${fmtRate(r.peak)}</td>
+        <td class=${r.errors ? "error" : ""}>${runResult(r)}</td></tr>`)}</tbody></table></div>`}
+    ${edit && html`<${ScrubPlan} base=${base} s=${s} onClose=${() => { setEdit(false); onChange(); }} />`}
+  </div>`;
+}
+
+// ScrubPlan: auto (keelNAS's 30-day rule), weekly, monthly or off at an hour (UTC), and once.
+// datetime-local is read as UTC too (keelNAS's clock), so what is typed is what keelnasd keeps.
+function ScrubPlan({ base, s, onClose }) {
+  const [every, setEvery] = useState(s.every || "auto");
+  const [wd, setWd] = useState(s.weekday || 0);
+  const [hour, setHour] = useState(s.hour === undefined ? 3 : s.hour);
+  const [once, setOnce] = useState(s.once ? s.once.slice(0, 16) : "");
+  const save = async () => {
+    const body = { every, weekday: Number(wd), hour: Number(hour) };
+    if (once) {
+      const d = new Date(once + ":00Z");
+      if (isNaN(d) || d <= new Date()) throw new Error(t("scrub.past"));
+      body.once = d.toISOString();
+    }
+    await api("PUT", base, body);
+  };
+  return html`<${FormDialog} title=${t("scrub.plantitle")} submit=${t("scrub.save")} onSubmit=${save} onClose=${onClose}>
+    <label>${t("scrub.every")}<select value=${every} onChange=${(e) => setEvery(e.target.value)}>
+      ${["auto", "month", "week", "off"].map((k) => html`<option value=${k}>${t("scrub.every." + k)}</option>`)}</select></label>
+    ${(every === "month" || every === "week") && html`<label>${t(every === "month" ? "scrub.wdmonth" : "scrub.wdweek")}<select value=${wd} onChange=${(e) => setWd(e.target.value)}>
+      ${[1, 2, 3, 4, 5, 6, 0].map((d) => html`<option value=${d}>${t("scrub.wd." + d)}</option>`)}</select></label>`}
+    ${every !== "off" && html`<label>${t("scrub.hour")} (${t("nas.scrub.utc")})<select value=${hour} onChange=${(e) => setHour(e.target.value)}>
+      ${Array.from({ length: 24 }, (_, h) => html`<option value=${h}>${p2(h)}:00</option>`)}</select></label>`}
+    <label>${t("scrub.oncelabel")} (${t("nas.scrub.utc")})<input type="datetime-local" value=${once} onInput=${(e) => setOnce(e.target.value)} /></label>
+    <p class="muted small">${t("nas.scrub.note")}</p>
+  <//>`;
+}
+
+// AttachDisk: one more copy for a single disk or a mirror (POST …/attach); disks smaller than
+// the storage's smallest disk are greyed (keelnasd refuses them too).
+function AttachDisk({ pool, label, free, onClose, onDone }) {
+  const need = Math.min(...(pool.disks || []).filter((d) => !d.missing && d.size > 0).map((d) => d.size));
+  const fits = (d) => !isFinite(need) || d.size >= need;
+  const [disk, setDisk] = useState((free.find(fits) || {}).name || "");
+  const go = async () => { await api("POST", NB + "/storage/" + enc(pool.name) + "/attach", { disk }); onDone(); };
+  return html`<${FormDialog} title=${t("nas.attach.title", label)} submit=${t("pool.attach")} disabled=${!disk} onSubmit=${go} onClose=${onClose}>
+    ${free.map((d) => html`<label class="check"><input type="radio" name="nasdisk" disabled=${!fits(d)} checked=${disk === d.name} onChange=${() => setDisk(d.name)} /> ${diskText(d)}${fits(d) ? "" : " · " + t("pool.attach.small", gib(need))}</label>`)}
+    <p class="muted small">${t("nas.attach.hint")}</p>
+  <//>`;
+}
+
+// ReplaceDisk: a new disk takes the place of a member (POST …/replace {old: its guid})
+function ReplaceDisk({ pool, dev, free, onClose, onDone }) {
+  const sibs = (pool.disks || []).filter((d) => d.vdev === dev.vdev && d.guid !== dev.guid && !d.missing && d.size > 0).map((d) => d.size);
+  const need = sibs.length ? Math.min(...sibs) : dev.size || 0;
+  const fits = (d) => !need || d.size >= need;
+  const [disk, setDisk] = useState((free.find(fits) || {}).name || "");
+  const name = dev.missing ? t("nas.replace.missing", dev.name, dev.was) : dev.name;
+  const go = async () => { await api("POST", NB + "/storage/" + enc(pool.name) + "/replace", { old: dev.guid, disk }); onDone(); };
+  return html`<${FormDialog} title=${t("nas.replace.title", name)} submit=${t("nas.replace")} disabled=${!disk} onSubmit=${go} onClose=${onClose}>
+    ${free.map((d) => html`<label class="check"><input type="radio" name="nasdisk" disabled=${!fits(d)} checked=${disk === d.name} onChange=${() => setDisk(d.name)} /> ${diskText(d)}${fits(d) ? "" : " · " + t("pool.attach.small", gib(need))}</label>`)}
+    <p class="muted small">${t("nas.replace.hint", name)}</p>
+  <//>`;
+}
+
+// ConfirmName: export or delete a storage, confirmed with its name
+function ConfirmName({ title, note, want, submit, onGo, onClose }) {
+  const [v, setV] = useState("");
+  return html`<${FormDialog} title=${title} submit=${submit} danger=${true} disabled=${v !== want} onSubmit=${onGo} onClose=${onClose}>
+    <p>${note}</p>
+    <label>${t("nas.confirmname", want)}<input value=${v} onInput=${(e) => setV(e.target.value)} autocomplete="off" /></label>
+  <//>`;
+}
+
+// LabelClear: a disk with the label of a pool that is not imported (POST /v1/disks/{d}/labelclear)
+function LabelClear({ d, onClose, onDone }) {
+  const want = !d.pool || d.pool === "(zfs)" ? d.name : d.pool;
+  const [v, setV] = useState("");
+  const go = async () => { await api("POST", NB + "/disks/" + enc(d.name) + "/labelclear", { confirm: v }); onDone(); };
+  return html`<${FormDialog} title=${t("nas.labelclear.title", d.name)} submit=${t("nas.labelclear")} danger=${true} disabled=${v !== want} onSubmit=${go} onClose=${onClose}>
+    <p>${t("nas.labelclear.note", d.name, d.pool)}</p>
+    <label>${t("nas.labelclear.confirm", want)}<input value=${v} onInput=${(e) => setV(e.target.value)} autocomplete="off" /></label>
+  <//>`;
+}
+
+// Devices: a storage's disks with their state and the per-disk actions
+function Devices({ p, admin, free, failing, onAct }) {
+  const ds = p.disks || [];
+  const mirrorOf = (d) => (p.vdevs || []).some((v) => v.name === d.vdev && v.type === "mirror");
+  const working = (d) => !d.missing && ["ONLINE", "DEGRADED"].includes(d.state);
+  const canDetach = (d) => mirrorOf(d) && ds.filter((x) => x.vdev === d.vdev).length > 1 && (!working(d) || ds.filter((x) => x.vdev === d.vdev && working(x)).length > 1);
+  return html`<table class="data plain small"><thead><tr><th>${t("nas.dev.disk")}</th><th>${t("nas.dev.state")}</th><th>${t("nas.dev.size")}</th>
+      <th class="num">${admin && html`<${Help}>${t("nas.devhelp")}<//>`}</th></tr></thead>
+    <tbody>${ds.map((d) => html`<tr>
+      <td class="mono">${d.missing ? html`<span title=${t("pool.missing.tip", d.name)}>${d.was} <span class="error">(${t("pool.missing")})</span></span>` : d.name}${mirrorOf(d) ? html` <span class="muted">${d.vdev}</span>` : ""}${failing(d.name) ? html` <span class="error">${t("nas.smartbad")}</span>` : null}</td>
+      <td class=${d.state === "ONLINE" ? "" : "error"}>${d.state}</td><td>${d.size ? gib(d.size) : "–"}</td>
+      <td class="num">${admin && html`${canDetach(d) && html`<button class="btn" title=${t("pool.detach.tip")} onClick=${() => onAct("detach", d)}>${t("pool.detach")}</button>`}
+        ${free.length > 0 && !scanBusy(p.scan) && html` <button class="btn" onClick=${() => onAct("replace", d)}>${t("nas.replace")}…</button>`}`}</td></tr>`)}</tbody></table>`;
+}
+
 function Storage({ admin, onChange }) {
   const [st, setSt] = useState(null);
   const [disks, setDisks] = useState([]);
@@ -887,17 +1160,30 @@ function Storage({ admin, onChange }) {
   useEffect(() => { load(); }, []);
   // an owner change runs: look again every few seconds for its progress
   const running = Object.values(trees).some((tr) => (tr || []).some((d) => d.job));
+  // a scrub or resilver runs: its progress every few seconds too
+  const scanning = (st || []).some((p) => scanBusy(p.scan));
+  const [tick, setTick] = useState(0);
   useEffect(() => {
-    if (!running) return undefined;
-    const h = setTimeout(load, 2000);
+    if (!running && !scanning) return undefined;
+    const h = setTimeout(() => { load(); setTick((x) => x + 1); }, running ? 2000 : 4000);
     return () => clearTimeout(h);
-  }, [trees]);
+  }, [trees, st]);
   if (!st) return html`<${Spinner} />`;
   const free = disks.filter(isFree);
   const inStorage = new Set(st.flatMap((p) => (p.disks || []).map((d) => d.name)));
   const busy = disks.filter((d) => !isFree(d) && !d.system && !inStorage.has(d.name));
   const failing = (n) => disks.some((d) => d.name === n && d.smart === "failing");
-  const done = () => { load(); onChange(); };
+  const done = () => { load(); setTick((x) => x + 1); onChange(); };
+  const detach = async (p, label, d) => {
+    if (!await ask(t("nas.detachq", d.missing ? d.was : d.name, label))) return;
+    try { await api("POST", NB + "/storage/" + enc(p.name) + "/detach", { disk: d.guid }); toast(t("pool.detached", d.missing ? d.was : d.name)); } catch (e) { fail(e); }
+    done();
+  };
+  const expand = async (p, label) => {
+    if (!await ask(t("nas.expandq", label))) return;
+    try { const r = await api("POST", NB + "/storage/" + enc(p.name) + "/expand"); toast(t("nas.expanded", label, gib(r.storage && r.storage.size))); } catch (e) { fail(e); }
+    done();
+  };
   const setAuto = async (pool, ds, on) => {
     try { await api("PUT", dsPath(pool, ds.name) + "/auto-snapshot", { on }); toast(t(on ? "nas.ds.autoon" : "nas.ds.autooff", ds.name)); } catch (e) { fail(e); }
     load();
@@ -911,9 +1197,19 @@ function Storage({ admin, onChange }) {
     ${st.map((p, i) => html`<div class="stack" style="margin-bottom:14px">
       <div><b>${t("nas.storagen", i + 1)}</b> <${Health} h=${p.health} /> <${Protected} p=${p} />
         <span class="muted small"> ${gib(p.used)} / ${gib(p.size)}</span>
-        ${admin && !p.protected && (p.disks || []).length === 1 && free.length > 0 && html` <button class="btn" onClick=${() => setDlg({ kind: "protect", pool: p, label: t("nas.storagen", i + 1) })}>${t("nas.protectbtn")}</button>`}</div>
+        <span class="muted small"> · ${p.name}</span>
+        ${admin && html`<span class="actions-inline">
+          ${!p.protected && (p.disks || []).length === 1 && free.length > 0 ? html` <button class="btn" onClick=${() => setDlg({ kind: "protect", pool: p, label: t("nas.storagen", i + 1) })}>${t("nas.protectbtn")}</button>`
+            : p.vdevs && p.vdevs.length === 1 && p.vdevs[0].type === "mirror" && free.length > 0 && html` <button class="btn" title=${t("pool.attach.tip")} onClick=${() => setDlg({ kind: "attach", pool: p, label: t("nas.storagen", i + 1) })}>${t("pool.attach")}…</button>`}
+          ${p.vdevs && html` <button class="btn" onClick=${() => setDlg({ kind: "export", pool: p, label: t("nas.storagen", i + 1) })}>${t("nas.export")}…</button>
+            <button class="btn danger" onClick=${() => setDlg({ kind: "delete", pool: p, label: t("nas.storagen", i + 1) })}>${t("nas.delete")}…</button>`}</span>`}</div>
       <${Bar} pct=${p.size ? (100 * p.used) / p.size : 0} />
-      <div class="small muted">${(p.disks || []).map((d, j) => html`${j ? ", " : ""}${d.name}${d.state !== "ONLINE" ? " (" + d.state + ")" : ""}${failing(d.name) ? html` <span class="error">${t("nas.smartbad")}</span>` : null}`)}</div>
+      ${p.vdevs ? html`<${Devices} p=${p} admin=${admin} free=${free} failing=${failing}
+          onAct=${(kind, d) => (kind === "detach" ? detach(p, t("nas.storagen", i + 1), d) : setDlg({ kind: "replace", pool: p, dev: d }))} />`
+        : html`<div class="small muted">${(p.disks || []).map((d, j) => html`${j ? ", " : ""}${d.name}${d.state !== "ONLINE" ? " (" + d.state + ")" : ""}${failing(d.name) ? html` <span class="error">${t("nas.smartbad")}</span>` : null}`)}</div>`}
+      ${scanBusy(p.scan) && p.scan.kind === "resilver" && html`<${ScanProgress} sc=${p.scan} />`}
+      ${p.expand > 0 && html`<div class="small warn">${t("nas.expand.note", gib(p.expand))}${admin && html` <button class="btn" onClick=${() => expand(p, t("nas.storagen", i + 1))}>${t("pool.expand")}…</button>`}</div>`}
+      ${p.vdevs && p.health !== "MISSING" && html`<${Scrub} pool=${p.name} sc=${p.scan} admin=${admin} tick=${tick} onChange=${done} />`}
       ${trees[p.name] && html`<${DatasetTree} pool=${p.name} label=${t("nas.storagen", i + 1)} tree=${trees[p.name]} jobs=${jobs} admin=${admin}
         onAct=${(kind, ds, on) => (kind === "del" ? delDs(p.name, ds) : kind === "auto" ? setAuto(p.name, ds, on) : setDlg({ kind, pool: p.name, ds, tree: trees[p.name] }))} />`}
     </div>`)}
@@ -928,10 +1224,18 @@ function Storage({ admin, onChange }) {
         <div class="small muted">${(p.disks || []).map((d, j) => html`${j ? ", " : ""}${d.name || d.device}${d.state !== "ONLINE" ? " (" + d.state + ")" : ""}`)}</div>
       </div>`)}`}
     ${busy.length > 0 && html`<h3>${t("nas.disk.busy")}</h3>
-      ${busy.map((d) => html`<div class="small">${diskText(d)} — <span class="muted">${busyText(d)}</span></div>`)}`}
+      ${busy.map((d) => html`<div class="small">${diskText(d)} — <span class="muted">${busyText(d)}</span>
+        ${admin && (d.pool_state === "not_imported" || d.pool_state === "destroyed") && html` <button class="btn" onClick=${() => setDlg({ kind: "labelclear", disk: d })}>${t("nas.labelclear")}…</button>`}</div>`)}`}
     ${dlg && dlg.kind === "new" && html`<${NewStorage} free=${free} onClose=${() => setDlg(null)} onDone=${done} />`}
     ${dlg && dlg.kind === "import" && html`<${ImportPool} pool=${dlg.pool} onClose=${() => setDlg(null)} onDone=${done} />`}
     ${dlg && dlg.kind === "protect" && html`<${AddProtection} pool=${dlg.pool} label=${dlg.label} free=${free} onClose=${() => setDlg(null)} onDone=${done} />`}
+    ${dlg && dlg.kind === "attach" && html`<${AttachDisk} pool=${dlg.pool} label=${dlg.label} free=${free} onClose=${() => setDlg(null)} onDone=${done} />`}
+    ${dlg && dlg.kind === "replace" && html`<${ReplaceDisk} pool=${dlg.pool} dev=${dlg.dev} free=${free} onClose=${() => setDlg(null)} onDone=${done} />`}
+    ${dlg && dlg.kind === "labelclear" && html`<${LabelClear} d=${dlg.disk} onClose=${() => setDlg(null)} onDone=${done} />`}
+    ${dlg && dlg.kind === "export" && html`<${ConfirmName} title=${t("nas.export.title", dlg.label)} note=${t("nas.export.note")} want=${dlg.pool.name} submit=${t("nas.export")}
+      onGo=${async () => { await api("POST", NB + "/storage/" + enc(dlg.pool.name) + "/export", { confirm: dlg.pool.name }); done(); }} onClose=${() => setDlg(null)} />`}
+    ${dlg && dlg.kind === "delete" && html`<${ConfirmName} title=${t("nas.delete.title", dlg.label)} note=${t("nas.delete.note")} want=${dlg.pool.name} submit=${t("nas.delete")}
+      onGo=${async () => { await api("DELETE", NB + "/storage/" + enc(dlg.pool.name) + "?confirm=" + enc(dlg.pool.name)); done(); }} onClose=${() => setDlg(null)} />`}
     ${dlg && dlg.kind === "share" && html`<${ShareForm} dataset=${dlg.ds} shares=${sharesOf(dlg.tree)} users=${users} pools=${[]} onClose=${() => setDlg(null)} onDone=${done} />`}
     ${dlg && dlg.kind === "props" && html`<${ShareForm} share=${dlg.ds.share} users=${users} pools=${[]} onClose=${() => setDlg(null)} onDone=${done} />`}
     ${dlg && dlg.kind === "newds" && html`<${NewDataset} pool=${dlg.pool} parent=${dlg.ds} tree=${dlg.tree} onClose=${() => setDlg(null)} onDone=${done} />`}
@@ -1345,15 +1649,21 @@ const gb = (b) => (b >= 1e12 ? (b / 1e12).toFixed(b >= 1e13 ? 0 : 1) + " TB" : M
 const healthOf = (d) => (d.health === "passed" ? t("nas.hw.passed") : d.health === "failed" ? t("nas.hw.failed") : t("nas.hw.nosmart"));
 const hoursOf = (h) => (h === undefined ? "–" : h >= 24 * 365 ? (h / 24 / 365).toFixed(1) + " y (" + h + " h)" : h + " h");
 
-// DiskHealth: what the disk says about itself in full (smartctl -x), in a dialog.
+// DiskHealth: what the disk says about itself in full, in a dialog, like keel's host dialog:
+// smartctl -x, and an NVMe disk's SMART/health log page 2 from nvmecontrol (keelnasd nvme_log).
 function DiskHealth({ d, path, onClose }) {
   const [x, setX] = useState(null);
   const [err, setErr] = useState("");
+  const [tab, setTab] = useState("smart");
   useEffect(() => { api("GET", path + encodeURIComponent(d.name)).then(setX).catch((e) => setErr(e.message)); }, []);
+  const tabs = x ? [["smart", "SMART (smartctl -x)", x.smart], ["nvme", t("nas.hw.h.nvmelog"), x.nvme_log]].filter((y) => y[2]) : [];
+  const cur = tabs.find((y) => y[0] === tab) || tabs[0];
   return html`<${Dialog} wide=${true} title=${html`${t("nas.hw.h.title", d.name)} <span class="muted small">${[d.model, d.serial].filter(Boolean).join(" · ")}</span>`} onClose=${onClose}>
     ${err && html`<p class="error">${err}</p>`}
     ${!x && !err && html`<${Spinner} small=${true} />`}
-    ${x && html`<pre class="code">${x.smart}</pre>`}
+    ${x && (x.errors || []).length > 0 && html`<p class="warn small">${x.errors.join("; ")}</p>`}
+    ${tabs.length > 1 && html`<div class="row-head"><span class="tabs">${tabs.map((y) => html`<button class=${"tab" + (y === cur ? " on" : "")} onClick=${() => setTab(y[0])}>${y[1]}</button>`)}</span></div>`}
+    ${cur && html`<pre class="code">${cur[2]}</pre>`}
   </${Dialog}>`;
 }
 

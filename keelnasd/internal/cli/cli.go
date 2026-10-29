@@ -228,7 +228,11 @@ func (c *CLI) run(argv []string) error {
 			return c.call("DELETE", kind+url.PathEscape(a.pos[1])+"/snapshots/"+url.PathEscape(a.pos[2]), nil, c.ok("deleted snapshot "+a.pos[2]))
 		}
 	case "debug":
-		// Test hook, not in the usage: keelnas debug tick [TIME] [--force J1,J2] [--only J1,J2]
+		// Test hooks, not in the usage: keelnas debug tick [TIME] [--force J1,J2] [--only J1,J2];
+		// keelnas debug api METHOD PATH [JSON]: one raw request, prints the status and the reply
+		if sub == "api" && (len(a.pos) == 3 || len(a.pos) == 4) {
+			return c.raw(a.pos[1], a.pos[2], a.pos[3:])
+		}
 		if sub != "tick" || len(a.pos) > 2 {
 			return usageError{}
 		}
@@ -1094,5 +1098,25 @@ func (c *CLI) printJSON(b []byte) error {
 	json.Unmarshal(b, &v)
 	out, _ := json.MarshalIndent(v, "", "  ")
 	fmt.Fprintln(c.Out, string(out))
+	return nil
+}
+
+// raw: one request as given; the status line and the reply, whatever the status.
+func (c *CLI) raw(method, path string, body []string) error {
+	var rd io.Reader
+	if len(body) == 1 {
+		rd = strings.NewReader(body[0])
+	}
+	req, err := http.NewRequest(method, c.Base+path, rd)
+	if err != nil {
+		return err
+	}
+	resp, err := c.HTTP.Do(req)
+	if err != nil {
+		return fmt.Errorf("keelnasd is not answering: %v", err)
+	}
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(resp.Body)
+	fmt.Fprintf(c.Out, "%d %s", resp.StatusCode, b)
 	return nil
 }

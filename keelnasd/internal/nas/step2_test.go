@@ -315,7 +315,7 @@ func TestSnapshotAPI(t *testing.T) {
 	}
 	// smb4.conf has the previous versions.
 	conf, _ := s.Sys.ReadFile(SmbConf)
-	for _, want := range []string{"vfs objects = shadow_copy2", "shadow:snapdir = .zfs/snapshot",
+	for _, want := range []string{"vfs objects = shadow_copy2 zfsacl", "shadow:snapdir = .zfs/snapshot",
 		"shadow:format = keelnas-%Y%m%d-%H%M%S", "shadow:sort = desc", "shadow:localtime = no"} {
 		if !strings.Contains(string(conf), "\n  "+want+"\n") {
 			t.Errorf("smb4.conf lacks %q", want)
@@ -368,11 +368,11 @@ func TestScrubDue(t *testing.T) {
 	}{
 		{"never scrubbed, old pool", Scan{}, created, true},
 		{"never scrubbed, young pool", Scan{}, young, false},
-		{"recent scrub", Scan{"SCRUB", "FINISHED", utc("2026-10-20T03:10:00Z").Unix(), 0}, created, false},
-		{"old scrub", Scan{"SCRUB", "FINISHED", utc("2026-10-04T03:10:00Z").Unix(), 0}, created, true},
-		{"running", Scan{"SCRUB", "SCANNING", 0, 0}, created, false},
-		{"resilvering", Scan{"RESILVER", "SCANNING", 0, 0}, created, false},
-		{"after a resilver: by creation", Scan{"RESILVER", "FINISHED", utc("2026-11-01T00:00:00Z").Unix(), 0}, created, true},
+		{"recent scrub", Scan{Function: "SCRUB", State: "FINISHED", End: utc("2026-10-20T03:10:00Z").Unix(), Errors: 0}, created, false},
+		{"old scrub", Scan{Function: "SCRUB", State: "FINISHED", End: utc("2026-10-04T03:10:00Z").Unix(), Errors: 0}, created, true},
+		{"running", Scan{Function: "SCRUB", State: "SCANNING", End: 0, Errors: 0}, created, false},
+		{"resilvering", Scan{Function: "RESILVER", State: "SCANNING", End: 0, Errors: 0}, created, false},
+		{"after a resilver: by creation", Scan{Function: "RESILVER", State: "FINISHED", End: utc("2026-11-01T00:00:00Z").Unix(), Errors: 0}, created, true},
 		{"creation unknown", Scan{}, 0, false},
 	} {
 		if got := ScrubDue(PoolInfo{Scan: tc.scan}, tc.created, now); got != tc.want {
@@ -416,7 +416,7 @@ func TestParseSmart(t *testing.T) {
 	for file, want := range map[string]SmartInfo{
 		"smart-ata-ok.json":      {Status: "ok", Temperature: 37, Health: "passed", Protocol: "ATA", Hours: i64(12034), Reallocated: i64(0), Pending: i64(0)},
 		"smart-ata-failing.json": {Status: "failing", Temperature: 41, Health: "failed", Protocol: "ATA", Reallocated: i64(4012), Pending: i64(88)},
-		"smart-nvme.json":        {Status: "ok", Temperature: 44, Health: "passed", Protocol: "NVMe", Hours: i64(8000), Wear: i(3), MediaErrors: i64(0)},
+		"smart-nvme.json":        {Status: "ok", Temperature: 44, Health: "passed", Protocol: "NVMe", Hours: i64(8000), Wear: i(3), MediaErrors: i64(0), Spare: i(100), UnsafeShutdowns: i64(12)},
 		"smart-virtio.json":      {Status: "unknown"}, // real, from the QEMU test VM
 	} {
 		if got := ParseSmart(readTestdata(t, file)); !reflect.DeepEqual(got, want) {
@@ -495,7 +495,7 @@ func TestComputeAlerts(t *testing.T) {
 		Pools: []PoolInfo{
 			{Name: "tank", Health: "DEGRADED", Size: 100, Used: 10, Protected: true},
 			{Name: "tank2", Health: "ONLINE", Size: 100, Used: 90, Protected: false},
-			{Name: "tank3", Health: "ONLINE", Size: 100, Used: 89, Protected: true, Scan: Scan{"SCRUB", "FINISHED", 1, 3}},
+			{Name: "tank3", Health: "ONLINE", Size: 100, Used: 89, Protected: true, Scan: Scan{Function: "SCRUB", State: "FINISHED", End: 1, Errors: 3}},
 			{Name: "tank4", Health: "MISSING"},
 		},
 		Disks:     []Disk{{Name: "ada1", Smart: "failing"}, {Name: "ada2", Smart: "ok"}, {Name: "vtbd1", Smart: "unknown"}},

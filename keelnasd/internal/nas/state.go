@@ -35,6 +35,8 @@ type Pool struct {
 	// with this altroot every time, so its own mountpoints stay below it; "" for the pools
 	// keelNAS made.
 	Altroot string `json:"altroot,omitempty"`
+	// Scrub: when keelnasd checks the pool (scrub.go); nil = the default (ScrubDefault)
+	Scrub *ScrubPlan `json:"scrub,omitempty"`
 }
 
 type User struct {

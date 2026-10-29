@@ -8,7 +8,7 @@ import (
 
 // The scheduler: once a minute keelnasd looks at the clock (UTC) and runs what is due. No cron.
 //   on the hour   snapshots (class by ClassAt) and pruning
-//   03:00         scrubs that are due
+//   each minute   the scrubs each pool's plan asks for (scrub.go; default: 03:00, 30 days after the last)
 //   every 24 h    SMART (the first run right after the start)
 
 // TickResult says what a tick did (for the log and the test hook).
@@ -52,8 +52,8 @@ func (s *Server) Tick(t time.Time, force, only []string) TickResult {
 	if want(JobSnapshots, t.Minute() == 0) {
 		s.snapshotTick(t, &res)
 	}
-	if want(JobScrub, t.Hour() == 3 && t.Minute() == 0) {
-		s.scrubTick(t, &res)
+	if want(JobScrub, true) { // each pool's plan says when (scrub.go); cheap when nothing is due
+		s.scrubTick(t, slices.Contains(force, JobScrub), &res)
 	}
 	s.hmu.Lock()
 	smartDue := s.lastSmart.IsZero() || t.Sub(s.lastSmart) >= 24*time.Hour

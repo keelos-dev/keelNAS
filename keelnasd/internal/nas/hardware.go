@@ -52,6 +52,7 @@ func (s *Server) hardware() (Hardware, error) {
 	}
 	hw := Hardware{Disks: make([]HWDisk, len(disks)), ReadAt: now.UTC().Format(time.RFC3339)}
 	ctrls := s.controllers()
+	devs := s.smartDevices(disks)
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, 4)
 	for i, d := range disks {
@@ -64,7 +65,12 @@ func (s *Server) hardware() (Hardware, error) {
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			out, _ := s.Sys.Run("", "smartctl", "-j", "-n", "standby", "-i", "-H", "-A", "/dev/"+name)
+			args, ok := smartArgs(name, devs)
+			if !ok {
+				hw.Disks[i].SmartInfo = SmartInfo{Status: "unknown"}
+				return
+			}
+			out, _ := s.Sys.Run("", "smartctl", append([]string{"-j", "-n", "standby", "-i", "-H", "-A"}, args...)...)
 			hw.Disks[i].SmartInfo = ParseSmart(out)
 		}(i, d.Name)
 	}
@@ -117,6 +123,9 @@ type HWDiskDetail struct {
 	Name   string `json:"name"`
 	Device string `json:"device"`
 	Smart  string `json:"smart"` // the text of smartctl -x
+	// NVMe: the SMART/health log page 2 as nvmecontrol prints it (keel's host dialog has the same)
+	NVMeLog string   `json:"nvme_log,omitempty"`
+	Errors  []string `json:"errors,omitempty"`
 }
 
 func (s *Server) getHardwareDisk(r *http.Request) (any, error) {
@@ -132,7 +141,21 @@ func (s *Server) getHardwareDisk(r *http.Request) (any, error) {
 	if !found {
 		return nil, notFound("no disk %s", name)
 	}
+	args, ok := smartArgs(name, s.smartDevices(disks))
+	if !ok {
+		return HWDiskDetail{Name: name, Device: "/dev/" + name, Errors: []string{"smartctl does not see this disk"}}, nil
+	}
+	dev := args[len(args)-1]
 	// smartctl's exit status has bits for "the disk has logged errors": its text counts all the same
-	out, _ := s.Sys.Run("", "smartctl", "-x", "/dev/"+name)
-	return HWDiskDetail{Name: name, Device: "/dev/" + name, Smart: out}, nil
+	out, _ := s.Sys.Run("", "smartctl", append([]string{"-x"}, args...)...)
+	x := HWDiskDetail{Name: name, Device: dev, Smart: out}
+	// an NVMe disk: its SMART/health log page as nvmecontrol prints it, a tab of its own
+	if c := nvmeCtrl(dev); c != "" {
+		if l, err := s.Sys.Run("", "nvmecontrol", "logpage", "-p", "2", c); err == nil {
+			x.NVMeLog = l
+		} else {
+			x.Errors = append(x.Errors, "nvmecontrol logpage: "+err.Error())
+		}
+	}
+	return x, nil
 }

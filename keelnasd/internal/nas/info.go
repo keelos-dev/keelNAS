@@ -111,7 +111,17 @@ type PoolInfo struct {
 	Free      int64
 	Protected bool
 	Members   []Member // leaf vdevs
+	Tops      []Top    // top-level vdevs (a disk, mirror-0, raidz1-0…), by name
 	Scan      Scan
+	// ExpandSize: zpool list's expandsize, what zpool online -e would add (0: none known)
+	ExpandSize int64
+}
+
+// Top is a top-level vdev: Size is its allocatable space (total_space; the metaslabs).
+type Top struct {
+	Name string
+	Type string // disk, mirror, raidz1, …
+	Size int64
 }
 
 // Scan is the pool's last (or current) scrub or resilver, from scan_stats.
@@ -120,11 +130,21 @@ type Scan struct {
 	State    string // SCANNING, FINISHED, CANCELED
 	End      int64  // Unix time the scan ended
 	Errors   int64  // errors it could not repair
+	// the rest of scan_stats, for the progress (scrub.go ScanFromStats): byte counts, and the
+	// current pass (pass_start, the time it was paused, issued_bytes_per_scan)
+	Start, ToExamine, Examined, Skipped, Processed, Issued int64
+	PassStart, Pause, SpentPaused, PassIssued              int64
 }
 
+// Member is a leaf vdev. A device that was not there when the pool was imported has its guid as
+// its name (Missing) and the path it had (Path).
 type Member struct {
-	Path  string
-	State string
+	Path    string
+	State   string
+	GUID    string
+	Top     string // its top-level vdev (its own name for a single disk)
+	Size    int64  // phys_space: the device's size
+	Missing bool
 }
 
 type zvdev struct {
@@ -133,21 +153,19 @@ type zvdev struct {
 	Path     string           `json:"path"`
 	State    string           `json:"state"`
 	Class    string           `json:"class"`
+	GUID     json.Number      `json:"guid"`
+	Total    json.Number      `json:"total_space"`
+	Phys     json.Number      `json:"phys_space"`
 	Children map[string]zvdev `json:"vdevs"`
 }
 
 type zpoolStatus struct {
 	Pools map[string]struct {
-		Name  string           `json:"name"`
-		State string           `json:"state"`
-		GUID  json.Number      `json:"pool_guid"`
-		Vdevs map[string]zvdev `json:"vdevs"`
-		Scan  *struct {
-			Function string      `json:"function"`
-			State    string      `json:"state"`
-			EndTime  json.Number `json:"end_time"`
-			Errors   json.Number `json:"errors"`
-		} `json:"scan_stats"`
+		Name  string                     `json:"name"`
+		State string                     `json:"state"`
+		GUID  json.Number                `json:"pool_guid"`
+		Vdevs map[string]zvdev           `json:"vdevs"`
+		Scan  map[string]json.RawMessage `json:"scan_stats"`
 	} `json:"pools"`
 }
 
@@ -199,17 +217,23 @@ func ParsePools(statusOut, listOut string) ([]PoolInfo, error) {
 	for name, p := range st.Pools {
 		pi := PoolInfo{Name: name, GUID: p.GUID.String(), Health: p.State}
 		if root, ok := p.Vdevs[name]; ok {
-			walkVdevs(root, &pi)
+			walkVdevs(root, &pi, 0, "")
 		}
 		if sc := p.Scan; sc != nil {
-			pi.Scan.Function, pi.Scan.State = sc.Function, sc.State
-			pi.Scan.End, _ = sc.EndTime.Int64()
-			pi.Scan.Errors, _ = sc.Errors.Int64()
+			str := func(k string) string { var v string; json.Unmarshal(sc[k], &v); return v }
+			num := func(k string) int64 { var n json.Number; decodeNum(sc[k], &n); i, _ := n.Int64(); return i }
+			x := &pi.Scan
+			x.Function, x.State = str("function"), str("state")
+			x.End, x.Errors, x.Start = num("end_time"), num("errors"), num("start_time")
+			x.ToExamine, x.Examined, x.Skipped = num("to_examine"), num("examined"), num("skipped")
+			x.Processed, x.Issued, x.PassStart = num("processed"), num("issued"), num("pass_start")
+			x.Pause, x.SpentPaused, x.PassIssued = num("scrub_pause"), num("scrub_spent_paused"), num("issued_bytes_per_scan")
 		}
 		if l, ok := ls.Pools[name]; ok {
 			pi.Size = propInt(l.Properties, "size")
 			pi.Used = propInt(l.Properties, "allocated")
 			pi.Free = propInt(l.Properties, "free")
+			pi.ExpandSize = propInt(l.Properties, "expandsize")
 		}
 		pools = append(pools, pi)
 	}
@@ -217,7 +241,7 @@ func ParsePools(statusOut, listOut string) ([]PoolInfo, error) {
 	return pools, nil
 }
 
-func walkVdevs(v zvdev, pi *PoolInfo) {
+func walkVdevs(v zvdev, pi *PoolInfo, depth int, top string) {
 	names := make([]string, 0, len(v.Children))
 	for k := range v.Children {
 		names = append(names, k)
@@ -225,20 +249,48 @@ func walkVdevs(v zvdev, pi *PoolInfo) {
 	sort.Strings(names)
 	for _, k := range names {
 		c := v.Children[k]
+		t := top
+		if depth == 0 {
+			t = c.Name
+			if t == "" {
+				t = k
+			}
+			typ := c.Type
+			if typ == "raidz" || typ == "draid" {
+				typ = strings.SplitN(k, "-", 2)[0] // raidz2-0: raidz2
+			}
+			size, _ := c.Total.Int64()
+			pi.Tops = append(pi.Tops, Top{Name: t, Type: typ, Size: size})
+		}
 		switch {
 		case c.Type == "mirror" || strings.HasPrefix(c.Type, "raidz") || c.Type == "draid":
 			pi.Protected = true
-			walkVdevs(c, pi)
+			walkVdevs(c, pi, depth+1, t)
 		case len(c.Children) > 0:
-			walkVdevs(c, pi)
+			walkVdevs(c, pi, depth+1, t)
 		default:
 			path := c.Path
 			if path == "" {
 				path = c.Name
 			}
-			pi.Members = append(pi.Members, Member{Path: path, State: c.State})
+			size, _ := c.Phys.Int64()
+			pi.Members = append(pi.Members, Member{Path: path, State: c.State, GUID: c.GUID.String(), Top: t, Size: size,
+				Missing: isGUIDName(c.Name) && c.State != "ONLINE"})
 		}
 	}
+}
+
+// isGUIDName: zpool names a device by its guid when it was not there at import ("was /dev/…").
+func isGUIDName(n string) bool {
+	if n == "" {
+		return false
+	}
+	for _, c := range n {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 // Dataset is a line of `zfs list -H -p -o name,type,used,mountpoint`.
@@ -501,6 +553,9 @@ type SmartInfo struct {
 	Reallocated *int64 `json:"reallocated,omitempty"`
 	Pending     *int64 `json:"pending,omitempty"`
 	MediaErrors *int64 `json:"media_errors,omitempty"`
+	// NVMe only: available spare in percent, unsafe shutdowns
+	Spare           *int   `json:"spare,omitempty"`
+	UnsafeShutdowns *int64 `json:"unsafe_shutdowns,omitempty"`
 }
 
 // ParseSmart reads `smartctl -j … DEV`. smartctl's exit status is a bit mask and is often
@@ -529,8 +584,10 @@ func ParseSmart(out string) SmartInfo {
 			Hours int64 `json:"hours"`
 		} `json:"power_on_time"`
 		NVMe *struct {
-			PercentageUsed int   `json:"percentage_used"`
-			MediaErrors    int64 `json:"media_errors"`
+			PercentageUsed  int   `json:"percentage_used"`
+			MediaErrors     int64 `json:"media_errors"`
+			AvailableSpare  int   `json:"available_spare"`
+			UnsafeShutdowns int64 `json:"unsafe_shutdowns"`
 		} `json:"nvme_smart_health_information_log"`
 		ATA *struct {
 			Table []struct {
@@ -564,8 +621,8 @@ func ParseSmart(out string) SmartInfo {
 		info.Hours = &h
 	}
 	if j.NVMe != nil {
-		w, e := j.NVMe.PercentageUsed, j.NVMe.MediaErrors
-		info.Wear, info.MediaErrors = &w, &e
+		w, e, sp, us := j.NVMe.PercentageUsed, j.NVMe.MediaErrors, j.NVMe.AvailableSpare, j.NVMe.UnsafeShutdowns
+		info.Wear, info.MediaErrors, info.Spare, info.UnsafeShutdowns = &w, &e, &sp, &us
 	}
 	if j.ATA != nil {
 		for _, a := range j.ATA.Table {
