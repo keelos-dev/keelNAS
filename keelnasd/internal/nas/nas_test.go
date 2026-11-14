@@ -86,7 +86,7 @@ func TestSmbConfig(t *testing.T) {
 		{Name: "home", Dataset: "tank/home", RW: []string{"alice"}, RO: []string{}},
 		{Name: "gone", Dataset: "tank/gone", RW: []string{"alice"}, RO: []string{}},
 	}}
-	got := SmbConfig(st, map[string]string{"zeta": "/shares/zeta", "docs": "/shares/docs", "home": "/pools/tank/usr/home"})
+	got := SmbConfig(st, map[string]string{"zeta": "/shares/zeta", "docs": "/shares/docs", "home": "/pools/tank/usr/home"}, nil)
 	if !strings.HasPrefix(got, "# Written by keelnasd") {
 		t.Error("no header")
 	}
@@ -94,9 +94,9 @@ func TestSmbConfig(t *testing.T) {
 		"map to guest = Never",
 		"passdb backend = tdbsam:/var/db/keelnas/samba/passdb.tdb",
 		"private dir = /var/db/keelnas/samba",
-		"[docs]\n  path = /shares/docs\n  valid users = alice bob\n  read only = no\n  vfs objects = shadow_copy2 zfsacl\n  nfs4:mode = special\n  nfs4:acedup = merge\n",
+		"[docs]\n  path = /shares/docs\n  valid users = alice bob\n  read only = no\n  hide unreadable = yes\n  vfs objects = shadow_copy2 zfsacl\n  nfs4:mode = special\n  nfs4:acedup = merge\n",
 		// a dataset keelNAS did not make (its owner changed to a user): the same as ours
-		"[home]\n  path = /pools/tank/usr/home\n  valid users = alice\n  read only = no\n  vfs objects = shadow_copy2 zfsacl\n  nfs4:mode = special\n  nfs4:acedup = merge\n",
+		"[home]\n  path = /pools/tank/usr/home\n  valid users = alice\n  read only = no\n  hide unreadable = yes\n  vfs objects = shadow_copy2 zfsacl\n  nfs4:mode = special\n  nfs4:acedup = merge\n",
 		// not mounted: off
 		"[gone]\n  # dataset tank/gone is not mounted\n  path = /nonexistent\n  available = no\n[home]",
 	} {
@@ -664,7 +664,7 @@ func TestShareACL(t *testing.T) {
 	st := &State{Users: []User{{Name: "alice", UID: 2001}, {Name: "bob", UID: 2002}},
 		Directory: &Directory{Users: []DirUser{{Name: "eve", UID: 70000}, {Name: "dave", UID: 70001, Problem: "a local user has the name"}},
 			Groups: []DirGroup{{Name: "office", GID: 70100}, {Name: "wheel", GID: 0, Problem: "a system group has the name"}}}}
-	got := ShareACL(st, Share{Name: "docs", RW: []string{"bob", "@office", "@wheel"}, RO: []string{"alice", "eve", "dave", "bob", "nobody"}})
+	got := ShareACL(st, Share{Name: "docs", RW: []string{"bob", "@office", "@wheel"}, RO: []string{"alice", "eve", "dave", "bob", "nobody"}}, nil)
 	want := []string{
 		"group:office:rwxpDdaARWc--s:fd-----:allow",
 		"user:bob:rwxpDdaARWc--s:fd-----:allow",

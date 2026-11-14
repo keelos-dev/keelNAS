@@ -23,7 +23,7 @@ func IQN(host, lun string) string { return "iqn.2026-10.dev.keelos:" + host + ":
 
 // SmbConfig is smb4.conf for the state (docs/04 section 5); paths: share name -> where its
 // dataset is mounted ("" or missing = not mounted: the share is off).
-func SmbConfig(st *State, paths map[string]string) string {
+func SmbConfig(st *State, paths map[string]string, guests map[string][]string) string {
 	var b strings.Builder
 	b.WriteString(generatedHeader)
 	// multicast dns register = no: Samba is built with mDNSResponder (the port wants a zeroconf
@@ -46,7 +46,7 @@ func SmbConfig(st *State, paths map[string]string) string {
 	shares := slices.Clone(st.Shares)
 	slices.SortFunc(shares, func(a, b Share) int { return strings.Compare(a.Name, b.Name) })
 	for _, sh := range shares {
-		valid := smbNames(union(sh.RW, sh.RO))
+		valid := smbNames(union(union(sh.RW, sh.RO), union(sh.Managers, guests[sh.Name])))
 		path := paths[sh.Name]
 		fmt.Fprintf(&b, "[%s]\n", sh.Name)
 		if path == "" {
@@ -66,6 +66,9 @@ func SmbConfig(st *State, paths map[string]string) string {
 		// inherited by every file; the owner of a file can then grant or take away that one
 		// file in Windows' security tab (vfs_zfsacl). So the share is writable for all of them.
 		b.WriteString("  read only = no\n")
+		// a folder somebody may not enter is not in his listing (docs/07; Windows calls it
+		// access-based enumeration)
+		b.WriteString("  hide unreadable = yes\n")
 		b.WriteString("  vfs objects = shadow_copy2 zfsacl\n")
 		b.WriteString("  nfs4:mode = special\n")
 		b.WriteString("  nfs4:acedup = merge\n")
@@ -123,41 +126,94 @@ func smbNames(a []string) []string {
 	return c
 }
 
-// ShareACL is the NFSv4 ACL of a share's root directory, in the form setfacl -m takes and
-// getfacl -q prints (so apply can see whether it is set): read-write users and groups get
-// modify_set (everything but write_acl and write_owner), read-only ones read_set and execute
-// (traversal), both inherited by files and directories; the owner of a file keeps full control
-// of it (owner@), and the group and everyone else get nothing. A name that is not on the NAS
-// (a keelAuth user or group with a problem) is left out.
-func ShareACL(st *State, sh Share) []string {
-	const (
-		modify = "rwxpDdaARWc--s"
-		read   = "r-x---a-R-c--s"
-		full   = "rwxpDdaARWcCos"
-		none   = "--------------"
-	)
-	var acl []string
-	add := func(name, perm string) {
-		kind := "user"
-		if g, ok := strings.CutPrefix(name, "@"); ok {
-			if !st.GroupMade(g) {
-				return
-			}
-			kind, name = "group", g
-		} else if !st.UserMade(name) {
-			return
+// The NFSv4 permission sets keelNAS writes, as getfacl prints them: modify is everything but
+// write_acl and write_owner, read is read and traversal.
+const (
+	aclModify = "rwxpDdaARWc--s"
+	// aclModifyIn: modify without "delete this one". For what a folder hands down when its
+	// own existence is not its members' business: a file in it is still deleted or renamed
+	// through the folder's "delete child", but the folder itself (and a folder in a root that
+	// only managers change) is not.
+	aclModifyIn = "rwxpD-aARWc--s"
+	aclRead     = "r-x---a-R-c--s"
+	aclFull     = "rwxpDdaARWcCos"
+	aclNone     = "--------------"
+)
+
+// aclWho is a share's name ("alice", "@office") as an ACL principal ("user:alice",
+// "group:office"); "" for a name that is not on the NAS (a keelAuth user or group with a problem).
+func aclWho(st *State, name string) string {
+	if g, ok := strings.CutPrefix(name, "@"); ok {
+		if !st.GroupMade(g) {
+			return ""
 		}
-		acl = append(acl, kind+":"+name+":"+perm+":fd-----:allow")
+		return "group:" + g
+	}
+	if !st.UserMade(name) {
+		return ""
+	}
+	return "user:" + name
+}
+
+// aclTail: the owner of a file keeps full control of it, the group and everyone else get
+// nothing; inherited by files and directories.
+var aclTail = []string{"owner@:" + aclFull + ":fd-----:allow", "group@:" + aclNone + ":fd-----:allow", "everyone@:" + aclNone + ":fd-----:allow"}
+
+// ShareACL is the NFSv4 ACL of a share's root directory, as getfacl -q prints it (so apply can
+// see whether it is set): managers get everything, read-write users and groups modify,
+// read-only ones read, all inherited by files and directories, then aclTail. With RootManagers
+// the read-write ones only read the root itself and their modify rights start one level down
+// (an entry for the root and an inherit-only one). guests are the names that are only in the
+// list of a folder of the share (docs/07): they may see and pass the root, nothing more. A name
+// that is not on the NAS is left out.
+func ShareACL(st *State, sh Share, guests []string) []string {
+	var acl []string
+	done := map[string]bool{}
+	add := func(name, perm, flags string) {
+		if w := aclWho(st, name); w != "" {
+			acl = append(acl, w+":"+perm+":"+flags+":allow")
+		}
+	}
+	for _, n := range sorted(sh.Managers) {
+		add(n, aclFull, "fd-----")
+		done[n] = true
 	}
 	for _, n := range sorted(sh.RW) {
-		add(n, modify)
-	}
-	for _, n := range sorted(sh.RO) {
-		if !slices.Contains(sh.RW, n) {
-			add(n, read)
+		if done[n] {
+			continue
+		}
+		done[n] = true
+		if sh.RootManagers {
+			add(n, aclRead, "-------")
+			add(n, aclModifyIn, "fdi----")
+		} else {
+			add(n, aclModify, "fd-----")
 		}
 	}
-	return append(acl, "owner@:"+full+":fd-----:allow", "group@:"+none+":fd-----:allow", "everyone@:"+none+":fd-----:allow")
+	for _, n := range sorted(sh.RO) {
+		if !done[n] {
+			add(n, aclRead, "fd-----")
+			done[n] = true
+		}
+	}
+	for _, n := range sorted(guests) {
+		if !done[n] {
+			add(n, aclRead, "-------")
+			done[n] = true
+		}
+	}
+	return append(acl, aclTail...)
+}
+
+// FolderACL is the ACL of a folder with a list of its own (docs/07): the share's managers
+// (always), the folder's read-write and read-only names, aclTail. Nothing of the share's own
+// lists: who is not named here does not get in.
+func FolderACL(st *State, sh Share, rw, ro []string) []string {
+	acl := ShareACL(st, Share{Managers: sh.Managers, RW: rw, RO: ro}, nil)
+	for i, e := range acl { // its members do not delete or rename the folder itself
+		acl[i] = strings.Replace(e, ":"+aclModify+":", ":"+aclModifyIn+":", 1)
+	}
+	return acl
 }
 
 // UserMade: the user exists on the NAS (local, or from keelAuth and made).

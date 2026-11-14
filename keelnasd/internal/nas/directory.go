@@ -113,6 +113,7 @@ func (s *State) dropPrincipals(gone map[string]bool) {
 	for i := range s.Shares {
 		s.Shares[i].RW = slices.DeleteFunc(s.Shares[i].RW, func(n string) bool { return gone[n] })
 		s.Shares[i].RO = slices.DeleteFunc(s.Shares[i].RO, func(n string) bool { return gone[n] })
+		s.Shares[i].Managers = slices.DeleteFunc(s.Shares[i].Managers, func(n string) bool { return gone[n] })
 	}
 }
 
@@ -540,6 +541,9 @@ func (s *Server) deleteDirectory(r *http.Request) (any, error) {
 		}
 		sh.RW = expand(sh.RW)
 		sh.RO = slices.DeleteFunc(expand(sh.RO), func(n string) bool { return slices.Contains(sh.RW, n) })
+		if len(sh.Managers) > 0 {
+			sh.Managers = expand(sh.Managers)
+		}
 	}
 	st.Directory = nil
 	errs, err := s.commit(st)

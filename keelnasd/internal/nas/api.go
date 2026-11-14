@@ -134,6 +134,11 @@ func (s *Server) Handler() http.Handler {
 	m.HandleFunc("POST /v1/shares", s.wrap(s.postShare))
 	m.HandleFunc("PUT /v1/shares/{name}", s.wrap(s.putShare))
 	m.HandleFunc("DELETE /v1/shares/{name}", s.wrap(s.deleteShare))
+	m.HandleFunc("GET /v1/shares/{name}/folders", s.wrap(s.getFolders))
+	m.HandleFunc("POST /v1/shares/{name}/folders", s.wrap(s.postFolder))
+	m.HandleFunc("PUT /v1/shares/{name}/folders/{folder}", s.wrap(s.putFolder))
+	m.HandleFunc("DELETE /v1/shares/{name}/folders/{folder}", s.wrap(s.deleteFolder))
+	m.HandleFunc("POST /v1/shares/{name}/acl", s.wrap(s.postShareACL))
 	m.HandleFunc("GET /v1/luns", s.wrap(s.getLUNs))
 	m.HandleFunc("POST /v1/luns", s.wrap(s.postLUN))
 	m.HandleFunc("DELETE /v1/luns/{name}", s.wrap(s.deleteLUN))
@@ -738,6 +743,7 @@ func (s *Server) deleteUser(r *http.Request) (any, error) {
 	for i := range st.Shares {
 		st.Shares[i].RW = slices.DeleteFunc(st.Shares[i].RW, func(n string) bool { return n == name })
 		st.Shares[i].RO = slices.DeleteFunc(st.Shares[i].RO, func(n string) bool { return n == name })
+		st.Shares[i].Managers = slices.DeleteFunc(st.Shares[i].Managers, func(n string) bool { return n == name })
 	}
 	s.Sys.Run("", "pdbedit", "-s", SmbConf, "-x", "-u", name)
 	// apply removes the system user: it is in our group and range and no longer in the state.
@@ -807,6 +813,18 @@ func checkAccess(st *State, rw, ro []string) error {
 	return nil
 }
 
+// checkManagers: managers exist; a manager is not also in the other lists (he has more).
+func checkManagers(st *State, rw, ro *[]string, mg []string) error {
+	for _, n := range mg {
+		if !st.Principal(n) {
+			return bad("no user or group %s", n)
+		}
+	}
+	in := func(n string) bool { return slices.Contains(mg, n) }
+	*rw, *ro = slices.DeleteFunc(*rw, in), slices.DeleteFunc(*ro, in)
+	return nil
+}
+
 func dedup(a []string) []string {
 	c := slices.Clone(a)
 	if c == nil {
@@ -821,11 +839,13 @@ func dedup(a []string) []string {
 // name is taken back with its data.
 func (s *Server) postShare(r *http.Request) (any, error) {
 	var req struct {
-		Name    string   `json:"name"`
-		Pool    string   `json:"pool"`
-		Dataset string   `json:"dataset"`
-		RW      []string `json:"rw"`
-		RO      []string `json:"ro"`
+		Name         string   `json:"name"`
+		Pool         string   `json:"pool"`
+		Dataset      string   `json:"dataset"`
+		RW           []string `json:"rw"`
+		RO           []string `json:"ro"`
+		Managers     []string `json:"managers"`
+		RootManagers bool     `json:"root_managers"`
 	}
 	if err := decode(r, &req); err != nil {
 		return nil, err
@@ -864,10 +884,17 @@ func (s *Server) postShare(r *http.Request) (any, error) {
 	if sh := st.ShareOf(req.Dataset); sh != nil {
 		return nil, conflict("dataset %s is shared as %s already", req.Dataset, sh.Name)
 	}
-	if err := checkAccess(st, req.RW, req.RO); err != nil {
+	mg := dedup(req.Managers)
+	if err := checkManagers(st, &req.RW, &req.RO, mg); err != nil {
 		return nil, err
 	}
-	sh := Share{Name: req.Name, Dataset: req.Dataset, RW: req.RW, RO: req.RO}
+	if err := checkAccess(st, union(req.RW, mg), req.RO); err != nil {
+		return nil, err
+	}
+	sh := Share{Name: req.Name, Dataset: req.Dataset, RW: req.RW, RO: req.RO, RootManagers: req.RootManagers}
+	if len(mg) > 0 {
+		sh.Managers = mg
+	}
 	if st.Ours(sh.Dataset) {
 		if _, err := s.ensureShare(st, sh, ds); err != nil {
 			return nil, err
@@ -902,8 +929,10 @@ func (s *Server) postShare(r *http.Request) (any, error) {
 func (s *Server) putShare(r *http.Request) (any, error) {
 	name := r.PathValue("name")
 	var req struct {
-		RW []string `json:"rw"`
-		RO []string `json:"ro"`
+		RW           []string  `json:"rw"`
+		RO           []string  `json:"ro"`
+		Managers     *[]string `json:"managers"`      // left out: as they are
+		RootManagers *bool     `json:"root_managers"` // left out: as it is
 	}
 	if err := decode(r, &req); err != nil {
 		return nil, err
@@ -915,13 +944,44 @@ func (s *Server) putShare(r *http.Request) (any, error) {
 	if sh == nil {
 		return nil, notFound("no share %s", name)
 	}
+	before := *sh
 	rw, ro := dedup(req.RW), dedup(req.RO)
-	if err := checkAccess(st, rw, ro); err != nil {
+	mg := sh.Managers
+	if req.Managers != nil {
+		mg = dedup(*req.Managers)
+	}
+	if err := checkManagers(st, &rw, &ro, mg); err != nil {
 		return nil, err
 	}
-	sh.RW, sh.RO = rw, ro
+	if err := checkAccess(st, union(rw, mg), ro); err != nil {
+		return nil, err
+	}
+	sh.RW, sh.RO, sh.Managers = rw, ro, mg
+	if len(mg) == 0 {
+		sh.Managers = nil
+	}
+	if req.RootManagers != nil {
+		sh.RootManagers = *req.RootManagers
+	}
+	if !slices.Equal(before.RW, sh.RW) || !slices.Equal(before.RO, sh.RO) || !slices.Equal(before.Managers, sh.Managers) || before.RootManagers != sh.RootManagers {
+		if j := s.runningJob(sh.Dataset); j != nil {
+			return nil, conflict("the files of %s are being changed (job %s): try again when that is done", sh.Dataset, j.ID)
+		}
+	}
 	if _, err := s.commit(st); err != nil {
 		return nil, err
+	}
+	// the files that inherited the old lists get the new ones (docs/07); folders with a list
+	// of their own only take the new managers
+	if root := s.datasets()[sh.Dataset].Mountpoint; strings.HasPrefix(root, "/") &&
+		(!slices.Equal(before.RW, sh.RW) || !slices.Equal(before.RO, sh.RO) || !slices.Equal(before.Managers, sh.Managers) || before.RootManagers != sh.RootManagers) {
+		tasks := []aclTask{{dir: root, skipTop: chownSkip}}
+		if !slices.Equal(before.Managers, sh.Managers) {
+			tasks = append(tasks, s.managersChanged(s.st, *sh, before.Managers, root)...)
+		}
+		if _, err := s.startACL(sh.Dataset, "", tasks); err != nil {
+			s.Log.Printf("share %s: %v", name, err)
+		}
 	}
 	return s.shareItem(name), nil
 }

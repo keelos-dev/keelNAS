@@ -166,6 +166,32 @@ const words = {
   "nas.rw": "Read and write",
   "nas.ro": "Read only",
   "nas.noaccess": "No access",
+  "nas.manager": "Manager",
+  "nas.managernote": "A manager has full control of everything in the share, in every folder whatever its list says, and may change permissions in Windows (Properties, Security).",
+  "nas.rootmanagers": "Only managers make, rename or delete folders in the share's root",
+  "nas.folders": "Folders",
+  "nas.foldersof": "Folders of {0}",
+  "nas.folder": "Folder",
+  "nas.fd.who": "Who may use it",
+  "nas.fd.likeshare": "like the share",
+  "nas.fd.plus": "like the share, and {0}",
+  "nas.fd.mgronly": "managers only",
+  "nas.fd.other": "more set in Windows",
+  "nas.fd.new": "New folder",
+  "nas.fd.make": "Make the folder",
+  "nas.fd.namehint": "Any name Windows takes: not \\ / : * ? \" < > |, no space or dot at the end.",
+  "nas.fd.mode.share": "Like the share: everybody who may use the share",
+  "nas.fd.mode.own": "Only these (and the share's managers)",
+  "nas.fd.note": "A folder with a list of its own lets in only who is named; everybody else does not even see it. What is inside follows the folder. These are the folder's real permissions: Windows shows the same ones under Properties, Security, and what is changed there shows here.",
+  "nas.fd.othernote": "This folder has permissions set in Windows that are neither \"read and write\" nor \"read only\". Saving here replaces them.",
+  "nas.fd.again": "Apply again",
+  "nas.fd.againnote": "A file moved here from another folder keeps the permissions it had. \"Apply again\" gives every file the permissions of its folder.",
+  "nas.fd.delq": "Delete the folder {0}? Only an empty folder is deleted.",
+  "nas.fd.none": "No folder in this share yet.",
+  "nas.fd.oldkeel": "Folders need a newer keelOS on this host.",
+  "nas.acl.jobcount": "setting permissions: counting files…",
+  "nas.acl.jobrun": "setting permissions: {0} of {1}",
+  "nas.acl.jobfailed": "setting permissions failed: {0}",
   "nas.used": "Used",
   "nas.newshare": "New share",
   "nas.sharename": "Name",
@@ -444,6 +470,32 @@ const words = {
   "nas.rw": "可读写",
   "nas.ro": "只读",
   "nas.noaccess": "不能访问",
+  "nas.manager": "管理",
+  "nas.managernote": "管理的人对共享里的一切有完全控制，每个文件夹都进得去（不管它的名单怎么写），也能在 Windows 的“属性 → 安全”里改权限。",
+  "nas.rootmanagers": "只有管理的人能在共享的根目录新建、改名、删除文件夹",
+  "nas.folders": "文件夹",
+  "nas.foldersof": "{0} 的文件夹",
+  "nas.folder": "文件夹",
+  "nas.fd.who": "谁能用",
+  "nas.fd.likeshare": "和共享一样",
+  "nas.fd.plus": "和共享一样，另加 {0}",
+  "nas.fd.mgronly": "只有管理的人",
+  "nas.fd.other": "另有在 Windows 里设的",
+  "nas.fd.new": "新建文件夹",
+  "nas.fd.make": "建立文件夹",
+  "nas.fd.namehint": "Windows 接受的名字都行：不能有 \\ / : * ? \" < > |，不能以空格或点结尾。",
+  "nas.fd.mode.share": "和共享一样：能用这个共享的人都能用",
+  "nas.fd.mode.own": "只有这些人（和共享的管理的人）",
+  "nas.fd.note": "单独设了名单的文件夹只有名单里的人进得去，其他人连看都看不到它。里面的东西跟着文件夹走。这就是文件夹真正的权限：Windows 的“属性 → 安全”里看到的是同一份，在那边改了这里也看得到。",
+  "nas.fd.othernote": "这个文件夹有在 Windows 里设的、既不是“可读写”也不是“只读”的权限。在这里保存会把它们换掉。",
+  "nas.fd.again": "重新套用",
+  "nas.fd.againnote": "从别的文件夹移过来的文件带着原来的权限。“重新套用”让每个文件重新得到它所在文件夹的权限。",
+  "nas.fd.delq": "删除文件夹 {0}？只删空的文件夹。",
+  "nas.fd.none": "这个共享里还没有文件夹。",
+  "nas.fd.oldkeel": "文件夹功能需要这台主机上更新的 keelOS。",
+  "nas.acl.jobcount": "正在设权限：在数文件…",
+  "nas.acl.jobrun": "正在设权限：{0} / {1}",
+  "nas.acl.jobfailed": "设权限失败：{0}",
   "nas.used": "已用",
   "nas.newshare": "新建共享",
   "nas.sharename": "名字",
@@ -722,6 +774,32 @@ const words = {
   "nas.rw": "読み書き",
   "nas.ro": "読み取り専用",
   "nas.noaccess": "アクセス不可",
+  "nas.manager": "管理者",
+  "nas.managernote": "管理者は共有内のすべてをフルコントロールでき、リストに関係なくどのフォルダーにも入れます。Windows の「プロパティ → セキュリティ」でアクセス許可も変更できます。",
+  "nas.rootmanagers": "共有のルートでフォルダーを作成・名前変更・削除できるのは管理者だけにする",
+  "nas.folders": "フォルダー",
+  "nas.foldersof": "{0} のフォルダー",
+  "nas.folder": "フォルダー",
+  "nas.fd.who": "使えるユーザー",
+  "nas.fd.likeshare": "共有と同じ",
+  "nas.fd.plus": "共有と同じ、加えて {0}",
+  "nas.fd.mgronly": "管理者のみ",
+  "nas.fd.other": "Windows で設定された項目あり",
+  "nas.fd.new": "フォルダーを作成",
+  "nas.fd.make": "フォルダーを作成",
+  "nas.fd.namehint": "Windows で使える名前：\\ / : * ? \" < > | は使えません。末尾の空白とピリオドも不可。",
+  "nas.fd.mode.share": "共有と同じ：この共有を使える全員",
+  "nas.fd.mode.own": "次のユーザーだけ（と共有の管理者）",
+  "nas.fd.note": "独自のリストを持つフォルダーには、リストにある人だけが入れます。ほかの人にはフォルダー自体が見えません。中身はフォルダーに従います。これはフォルダーの実際のアクセス許可です。Windows の「プロパティ → セキュリティ」に同じものが表示され、そこで変更した内容もここに表示されます。",
+  "nas.fd.othernote": "このフォルダーには、Windows で設定された「読み書き」でも「読み取り専用」でもないアクセス許可があります。ここで保存すると置き換えられます。",
+  "nas.fd.again": "再適用",
+  "nas.fd.againnote": "ほかのフォルダーから移動したファイルは元のアクセス許可のままです。「再適用」で、すべてのファイルにそのフォルダーのアクセス許可を設定し直します。",
+  "nas.fd.delq": "フォルダー {0} を削除しますか？空のフォルダーだけ削除できます。",
+  "nas.fd.none": "この共有にはまだフォルダーがありません。",
+  "nas.fd.oldkeel": "フォルダー機能には、このホストの keelOS の更新が必要です。",
+  "nas.acl.jobcount": "アクセス許可を設定中：ファイルを数えています…",
+  "nas.acl.jobrun": "アクセス許可を設定中：{0} / {1}",
+  "nas.acl.jobfailed": "アクセス許可の設定に失敗しました：{0}",
   "nas.used": "使用量",
   "nas.newshare": "共有を作成",
   "nas.sharename": "名前",
@@ -1263,9 +1341,8 @@ const sharesOf = (tree) => (tree || []).filter((d) => d.share).map((d) => d.shar
 // ownerText: who owns a dataset's folder: its keelNAS user, root, or the bare uid.
 const ownerText = (o) => (!o ? "" : o.user || (o.uid === 0 ? "root" : "uid " + o.uid));
 // jobText: an owner change in words (running: how far; failed: why).
-const jobText = (j) => (j.state === "counting" ? t("nas.ds.jobcount")
-  : j.state === "running" ? t("nas.ds.jobrun", j.files, j.total)
-  : j.state === "failed" ? t("nas.ds.jobfailed", j.error) : "");
+const jobText = (j) => { const k = j.kind === "acl" ? "nas.acl.job" : "nas.ds.job";
+  return j.state === "counting" ? t(k + "count") : j.state === "running" ? t(k + "run", j.files, j.total) : j.state === "failed" ? t(k + "failed", j.error) : ""; };
 
 // DatasetTree: a storage's datasets as an indented list (the name below its parent). A dataset
 // keelNAS did not make is shared only once its files belong to a keelNAS user ("change owner").
@@ -1358,22 +1435,26 @@ const bytes = (n) => {
 // Access: each user of a share: read and write, read only, or none. onChange gets an updater
 // (a => new value), so changes that come quickly one after another all count. users: {name, label}: local
 // users, keelAuth's users and its groups ("@office"), from accessList.
-function Access({ users, value, onChange }) {
+// manager: a share's list also offers "manager" (keelNAS docs/07); a folder's does not.
+function Access({ users, value, onChange, manager }) {
   return users.map((u) => html`<label>${u.label || u.name}
     <select value=${value[u.name] || ""} onChange=${(e) => { const v = e.target.value; onChange((a) => ({ ...a, [u.name]: v })); }}>
       <option value="">${t("nas.noaccess")}</option><option value="rw">${t("nas.rw")}</option><option value="ro">${t("nas.ro")}</option>
+      ${manager && html`<option value="mg">${t("nas.manager")}</option>`}
     </select></label>`);
 }
 const split = (acc) => ({ rw: Object.keys(acc).filter((u) => acc[u] === "rw"), ro: Object.keys(acc).filter((u) => acc[u] === "ro") });
-const join = (s) => Object.fromEntries([...(s.rw || []).map((u) => [u, "rw"]), ...(s.ro || []).map((u) => [u, "ro"])]);
-// accessList: who can be named in a share (GET …/users): local users, then keelAuth's users and
-// groups that keelNAS made (docs/54 §3.3).
+const mgrs = (acc) => Object.keys(acc).filter((u) => acc[u] === "mg");
+const join = (s) => Object.fromEntries([...(s.rw || []).map((u) => [u, "rw"]), ...(s.ro || []).map((u) => [u, "ro"]), ...(s.managers || []).map((u) => [u, "mg"])]);
+// accessList: who can be named in a share (GET …/users): keelAuth's groups that keelNAS made, local
+// users, keelAuth's users (docs/54 §3.3).
+// Groups come first: with many people a share names groups, and the people are a long list.
 const accessList = (r) => [
+  ...(r.groups || []).filter((g) => !g.problem).map((g) => ({ name: "@" + g.name, label: t("nas.dir.grouplabel", g.name) })),
   ...(r.users || []).map((u) => ({ name: u.name })),
   ...(r.synced || []).filter((u) => !u.problem).map((u) => ({ name: u.name, label: t("nas.dir.userlabel", u.name) })),
-  ...(r.groups || []).filter((g) => !g.problem).map((g) => ({ name: "@" + g.name, label: t("nas.dir.grouplabel", g.name) })),
 ];
-const some = (acc) => split(acc).rw.length + split(acc).ro.length > 0;
+const some = (acc) => split(acc).rw.length + split(acc).ro.length + mgrs(acc).length > 0;
 
 // ShareForm: who may use an existing share (share); a new share of a dataset (dataset, keelNAS
 // docs/06); or, with neither, a new share in a new dataset <storage>/shares/<name> (the old way,
@@ -1388,10 +1469,12 @@ function ShareForm({ share, dataset, shares, users, pools, onClose, onDone }) {
   });
   const [pool, setPool] = useState(pools.length ? pools[0].name : "");
   const [acc, setAcc] = useState(share ? join(share) : {});
+  const [rootM, setRootM] = useState(!!(share && share.root_managers));
   const save = async () => {
-    if (share) await api("PUT", NB + "/shares/" + enc(share.name), split(acc));
-    else if (dataset) await api("POST", NB + "/shares", { dataset: dataset.name, name: name.trim(), ...split(acc) });
-    else await api("POST", NB + "/shares", { name: name.trim(), pool, ...split(acc) });
+    const who = { ...split(acc), managers: mgrs(acc), root_managers: rootM && mgrs(acc).length > 0 };
+    if (share) await api("PUT", NB + "/shares/" + enc(share.name), who);
+    else if (dataset) await api("POST", NB + "/shares", { dataset: dataset.name, name: name.trim(), ...who });
+    else await api("POST", NB + "/shares", { name: name.trim(), pool, ...who });
     onDone();
   };
   return html`<${FormDialog} title=${share ? t("nas.editshare", share.name) : dataset ? t("nas.ds.sharetitle", dataset.name) : t("nas.newshare")}
@@ -1399,9 +1482,71 @@ function ShareForm({ share, dataset, shares, users, pools, onClose, onDone }) {
     ${!share && html`<label>${t("nas.sharename")}<input type="text" required pattern=${namePattern} title=${t("nas.namehint")} value=${name} onInput=${(e) => setName(e.target.value)} /><span class="muted small">${t("nas.namehint")}</span></label>`}
     ${!share && !dataset && pools.length > 1 && html`<label>${t("nas.storage")}<select value=${pool} onChange=${(e) => setPool(e.target.value)}>
       ${pools.map((p, i) => html`<option value=${p.name}>${t("nas.storagen", i + 1)}</option>`)}</select></label>`}
-    <${Access} users=${users} value=${acc} onChange=${setAcc} />
+    <${Access} users=${users} value=${acc} onChange=${setAcc} manager=${true} />
+    ${mgrs(acc).length > 0 && html`<label class="check"><input type="checkbox" checked=${rootM} onChange=${(e) => setRootM(e.target.checked)} /> ${t("nas.rootmanagers")}</label>
+      <p class="muted small">${t("nas.managernote")}</p>`}
     <p class="muted small">${t("nas.sharenote")}</p>
   <//>`;
+}
+
+// Folders of a share (keelNAS docs/07): each folder in the share's root with who may use it.
+// The lists are the folders' own permissions (NFSv4 ACLs), the ones Windows' security tab
+// shows: nothing is kept beside them, so both sides always see the same.
+const folderWho = (f) => {
+  const own = [...(f.rw || []).map((n) => n + " (" + t("nas.rw") + ")"), ...(f.ro || []).map((n) => n + " (" + t("nas.ro") + ")")].join(", ");
+  const base = f.inherit ? (own ? t("nas.fd.plus", own) : t("nas.fd.likeshare")) : (own || t("nas.fd.mgronly"));
+  return base + (f.other ? " · " + t("nas.fd.other") : "");
+};
+function FolderForm({ base, folder, users, onClose, onDone }) {
+  const [name, setName] = useState("");
+  const [own, setOwn] = useState(!!folder && !folder.inherit);
+  const [acc, setAcc] = useState(folder && !folder.inherit ? join(folder) : {});
+  const save = async () => {
+    const who = own ? split(acc) : (folder ? { inherit: true } : {});
+    if (folder) await api("PUT", base + "/folders/" + enc(folder.name), who);
+    else await api("POST", base + "/folders", { name: name.trim(), ...who });
+    onDone();
+  };
+  return html`<${FormDialog} title=${folder ? t("nas.editshare", folder.name) : t("nas.fd.new")} submit=${folder ? t("nas.save") : t("nas.fd.make")} onSubmit=${save} onClose=${onClose}>
+    ${!folder && html`<label>${t("nas.sharename")}<input type="text" required value=${name} onInput=${(e) => setName(e.target.value)} /><span class="muted small">${t("nas.fd.namehint")}</span></label>`}
+    <label class="check"><input type="radio" name="fdmode" checked=${!own} onChange=${() => setOwn(false)} /> ${t("nas.fd.mode.share")}</label>
+    <label class="check"><input type="radio" name="fdmode" checked=${own} onChange=${() => setOwn(true)} /> ${t("nas.fd.mode.own")}</label>
+    ${own && html`<${Access} users=${users} value=${acc} onChange=${setAcc} />`}
+    ${folder && folder.other && html`<p class="warn small">${t("nas.fd.othernote")}</p>`}
+    <p class="muted small">${t("nas.fd.note")}</p>
+  <//>`;
+}
+function Folders({ share, users, admin, onClose }) {
+  const [fs, setFs] = useState(null);
+  const [job, setJob] = useState(null);
+  const [old, setOld] = useState(false);
+  const [dlg, setDlg] = useState(null); // {folder} | {} (new)
+  const base = NB + "/shares/" + enc(share.name);
+  const load = () => api("GET", base + "/folders").then((r) => { setFs(r.folders || []); setJob(r.job || null); })
+    .catch((e) => { if (e.status === 404) { setOld(true); setFs([]); } else fail(e); });
+  useEffect(() => { load(); }, []);
+  // while the files below are rewritten: look again until the job is gone
+  useEffect(() => { if (!job) return undefined; const id = setTimeout(load, 2000); return () => clearTimeout(id); }, [job]);
+  const del = async (f) => {
+    if (!await ask(t("nas.fd.delq", f.name))) return;
+    try { await api("DELETE", base + "/folders/" + enc(f.name)); load(); } catch (e) { fail(e); }
+  };
+  const again = async () => { try { setJob(await api("POST", base + "/acl")); } catch (e) { fail(e); } };
+  if (dlg) return html`<${FolderForm} base=${base} folder=${dlg.folder} users=${users} onClose=${() => setDlg(null)} onDone=${() => { setDlg(null); setJob({ state: "counting", kind: "acl" }); load(); }} />`;
+  return html`<${Dialog} title=${t("nas.foldersof", share.name)} onClose=${onClose}><div class="stack">
+    ${!fs && html`<${Spinner} small=${true} />`}
+    ${old && html`<p class="warn">${t("nas.fd.oldkeel")}</p>`}
+    ${fs && !old && fs.length === 0 && html`<p class="muted small">${t("nas.fd.none")}</p>`}
+    ${fs && fs.length > 0 && html`<div class="table-wrap tall"><table class="data plain">
+      <thead><tr><th>${t("nas.folder")}</th><th>${t("nas.fd.who")}</th><th></th></tr></thead>
+      <tbody>${fs.map((f) => html`<tr><td style="white-space:nowrap">${f.name}</td><td class=${f.inherit && !f.rw.length && !f.ro.length ? "muted" : ""} title=${(f.acl || []).join("\n")}>${folderWho(f)}</td>
+        <td style="white-space:nowrap;text-align:right">${admin && html`<button type="button" class="btn" disabled=${!!job} onClick=${() => setDlg({ folder: f })}>${t("nas.edit")}</button>${" "}
+          <button type="button" class="btn danger" onClick=${() => del(f)}>${t("nas.delete")}</button>`}</td></tr>`)}</tbody></table></div>`}
+    ${job && html`<p class="small">${jobText(job)}</p>`}
+    <p class="muted small">${t("nas.fd.note")}</p>
+    ${admin && !old && html`<p class="muted small">${t("nas.fd.againnote")}</p>
+      <div class="actions"><button type="button" class="btn" disabled=${!!job} onClick=${again}>${t("nas.fd.again")}</button>
+        <button type="button" class="primary" disabled=${!!job} onClick=${() => setDlg({})}>${t("nas.fd.new")}</button></div>`}</div><//>`;
 }
 
 // Snapshots of one share: the list, take one now, delete one.
@@ -1458,13 +1603,14 @@ function Shares({ admin, host, tick }) {
     ${sh.length === 0 && html`<p class="muted">${t("nas.noshares")}${admin && !ok ? " " + t("nas.sharesneed") : ""}</p>`}
     ${sh.length > 0 && html`<div class="table-wrap tall"><table class="data plain">
       <thead><tr><th>${t("nas.share")}</th><th>${t("nas.ds.dataset")}</th><th>${t("nas.address")}</th><th>${t("nas.rw")}</th><th>${t("nas.ro")}</th><th>${t("nas.used")}</th><th></th></tr></thead>
-      <tbody>${sh.map((s) => html`<tr><td>${s.name}</td><td class="mono small">${s.dataset || (s.pool ? s.pool + "/shares/" + s.name : "")}</td><td class="mono">\\\\${host}\\${s.name}</td><td>${names(s.rw)}</td><td>${names(s.ro)}</td><td>${gib(s.used)}</td>
-        <td><button class="btn" onClick=${() => setDlg({ kind: "snaps", share: s })}>${t("nas.snaps")}</button>${" "}
+      <tbody>${sh.map((s) => html`<tr><td>${s.name}</td><td class="mono small">${s.dataset || (s.pool ? s.pool + "/shares/" + s.name : "")}</td><td class="mono">\\\\${host}\\${s.name}</td><td>${names(s.rw)}${s.managers && s.managers.length ? html`<div class="muted small">${t("nas.manager")}: ${names(s.managers)}</div>` : null}</td><td>${names(s.ro)}</td><td>${gib(s.used)}</td>
+        <td><button class="btn" onClick=${() => setDlg({ kind: "folders", share: s })}>${t("nas.folders")}</button>${" "}<button class="btn" onClick=${() => setDlg({ kind: "snaps", share: s })}>${t("nas.snaps")}</button>${" "}
           ${admin && html`<button class="btn" onClick=${() => setDlg({ kind: "edit", share: s })}>${t("nas.edit")}</button>${" "}
             <button class="btn danger" onClick=${() => del(s)}>${t("nas.delete")}</button>`}</td></tr>`)}</tbody></table></div>`}
     ${dlg && dlg.kind === "new" && html`<${ShareForm} shares=${sh} users=${users} pools=${pools} onClose=${close} onDone=${load} />`}
     ${dlg && dlg.kind === "edit" && html`<${ShareForm} share=${dlg.share} users=${users} pools=${pools} onClose=${close} onDone=${load} />`}
     ${dlg && dlg.kind === "snaps" && html`<${Snapshots} share=${dlg.share.name} admin=${admin} onClose=${close} />`}
+    ${dlg && dlg.kind === "folders" && html`<${Folders} share=${dlg.share} users=${users} admin=${admin} onClose=${close} />`}
   </div>`;
 }
 

@@ -50,6 +50,12 @@ type Share struct {
 	Dataset string   `json:"dataset"`
 	RW      []string `json:"rw"`
 	RO      []string `json:"ro"`
+	// Managers (docs/07): users and groups with full control of everything in the share, the
+	// right to change permissions included (Windows' security tab); they are in every folder's
+	// list whatever it says. RootManagers: only they may make or remove things in the share's
+	// root (the others still see it and enter the folders they may enter).
+	Managers     []string `json:"managers,omitempty"`
+	RootManagers bool     `json:"root_managers,omitempty"`
 	// Owner is only read: keelnasd 251c814 had Samba's force user here (docs/06 §6, dropped
 	// 2026-10-08); normalize drops it.
 	Owner string `json:"owner,omitempty"`
@@ -95,7 +101,7 @@ type State struct {
 	// AutoSnap: datasets whose scheduled snapshots were switched on or off by hand (the
 	// storage page); one not in it follows AutoSnapOn's default
 	AutoSnap map[string]bool `json:"auto_snapshot,omitempty"`
-	Network   *Network  `json:"network,omitempty"` // the LAN NIC (network.go); nil = DHCP
+	Network  *Network        `json:"network,omitempty"` // the LAN NIC (network.go); nil = DHCP
 	// Directory: connected to keelAuth, its users and groups (directory.go); nil = not connected
 	Directory *Directory `json:"directory,omitempty"`
 }
@@ -179,6 +185,7 @@ func (s *State) Clone() *State {
 	for i, sh := range s.Shares {
 		sh.RW = slices.Clone(sh.RW)
 		sh.RO = slices.Clone(sh.RO)
+		sh.Managers = slices.Clone(sh.Managers)
 		c.Shares[i] = sh
 	}
 	if s.Network != nil {

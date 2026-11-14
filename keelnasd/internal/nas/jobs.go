@@ -19,8 +19,9 @@ import (
 // Job is one background job as the API shows it.
 type Job struct {
 	ID       string   `json:"id"`
-	Kind     string   `json:"kind"` // chown
+	Kind     string   `json:"kind"` // chown; acl (folders.go)
 	Dataset  string   `json:"dataset"`
+	Path     string   `json:"path,omitempty"` // acl: the folder of the share, "" = all of it
 	User     string   `json:"user"`
 	State    string   `json:"state"` // counting, running, done, failed
 	Files    int64    `json:"files"` // done so far

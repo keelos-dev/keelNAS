@@ -231,7 +231,7 @@ func TestDirectorySync(t *testing.T) {
 		t.Errorf("smb4.conf:\n%s", conf)
 	}
 	// who writes is the root directory's ACL: the group and alice modify, eve reads
-	acl := "setfacl -m group:office:rwxpDdaARWc--s:fd-----:allow,user:alice:rwxpDdaARWc--s:fd-----:allow,user:eve:r-x---a-R-c--s:fd-----:allow,owner@:rwxpDdaARWcCos:fd-----:allow,group@:--------------:fd-----:allow,everyone@:--------------:fd-----:allow /shares/docs"
+	acl := "setfacl -a 0 group:office:rwxpDdaARWc--s:fd-----:allow,user:alice:rwxpDdaARWc--s:fd-----:allow,user:eve:r-x---a-R-c--s:fd-----:allow,owner@:rwxpDdaARWcCos:fd-----:allow,group@:--------------:fd-----:allow,everyone@:--------------:fd-----:allow /shares/docs"
 	if !f.Ran(acl) {
 		t.Errorf("the share's ACL: %v", f.Calls)
 	}
@@ -407,7 +407,7 @@ func TestDirectoryHelpers(t *testing.T) {
 	}
 	// a share nobody may use any more is switched off, not opened to everybody
 	conf := SmbConfig(&State{Shares: []Share{{Name: "empty", Dataset: "tank/shares/empty", RW: []string{}, RO: []string{}}}},
-		map[string]string{"empty": "/shares/empty"})
+		map[string]string{"empty": "/shares/empty"}, nil)
 	if !strings.Contains(conf, "[empty]\n  path = /shares/empty\n  available = no\n") || strings.Contains(conf, "valid users = \n") {
 		t.Errorf("empty share:\n%s", conf)
 	}

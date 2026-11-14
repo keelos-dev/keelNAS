@@ -38,6 +38,9 @@ type Server struct {
 
 	jobs     jobs // background jobs (jobs.go)
 	syncJobs bool // tests: a job is finished when its POST answers
+	// guests: per share, the names that are only in a folder's list (folders.go), as the last
+	// apply found them; under mu
+	guests map[string][]string
 
 	hwMu sync.Mutex // the hardware page's cached read (hardware.go)
 	hw   *Hardware
@@ -203,6 +206,7 @@ func (s *Server) applyLocked() []string {
 		}
 		places[sh.Name] = path
 	}
+	guests := s.guests
 	for _, l := range st.LUNs {
 		if !poolUp[l.Pool] {
 			fail("lun %s: pool %s is not imported", l.Name, l.Pool)
@@ -219,7 +223,7 @@ func (s *Server) applyLocked() []string {
 	}
 	smbChanged := false
 	if dsErr == nil { // without the datasets every share would look unmounted: keep the old file
-		if smbChanged, err = s.writeIfChanged(SmbConf, SmbConfig(st, places), 0o644); err != nil {
+		if smbChanged, err = s.writeIfChanged(SmbConf, SmbConfig(st, places, guests), 0o644); err != nil {
 			fail("%s: %v", SmbConf, err)
 		}
 	}
@@ -396,16 +400,19 @@ func (s *Server) shareRoot(st *State, sh Share, name, path string, ours bool) er
 			return err
 		}
 	}
-	want := ShareACL(st, sh)
+	// who is only in the list of a folder of the share passes the root too
+	guests := s.folderGuests(st, sh, path)
+	if s.guests == nil {
+		s.guests = map[string][]string{}
+	}
+	s.guests[sh.Name] = guests
+	want := ShareACL(st, sh, guests)
 	out, _ = s.Sys.Run("", "getfacl", "-q", path)
-	if slices.Equal(strings.Fields(out), want) {
+	have := strings.Fields(out)
+	if slices.Equal(have, want) {
 		return nil
 	}
-	if _, err := s.run("", "setfacl", "-b", path); err != nil {
-		return err
-	}
-	_, err := s.run("", "setfacl", "-m", strings.Join(want, ","), path)
-	return err
+	return s.setACL([]string{path}, len(have), want)
 }
 
 func (s *Server) ensureLUN(l LUN, ds map[string]Dataset) error {

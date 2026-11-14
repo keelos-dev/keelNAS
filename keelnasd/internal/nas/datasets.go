@@ -20,6 +20,9 @@ type ShareRef struct {
 	Name string   `json:"name"`
 	RW   []string `json:"rw"`
 	RO   []string `json:"ro"`
+	// as in the share itself: the share form of the storage page sends them back
+	Managers     []string `json:"managers,omitempty"`
+	RootManagers bool     `json:"root_managers,omitempty"`
 }
 
 // DSOwner is who owns a dataset's root directory: User is the keelNAS (or keelAuth) user with
@@ -108,7 +111,7 @@ func (s *Server) datasetTree(st *State, pool string) ([]DatasetInfo, error) {
 		d.Snapshots = snaps[d.Name]
 		d.AutoSnapshot = st.AutoSnapOn(d.Name)
 		if sh := st.ShareOf(d.Name); sh != nil {
-			d.Share = &ShareRef{sh.Name, sh.RW, sh.RO}
+			d.Share = &ShareRef{sh.Name, sh.RW, sh.RO, sh.Managers, sh.RootManagers}
 		}
 		if o, ok := owners[d.Mountpoint]; ok && d.Mounted {
 			d.Owner = &o
