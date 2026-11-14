@@ -146,6 +146,7 @@ const words = {
   "nas.imp.otherhost": "This pool was last used by another system ({0}). That system no longer uses these disks: take the pool over.",
   "nas.protected": "protected",
   "nas.unprotected": "not protected",
+  "nas.onhost": "on the host's storage",
   "nas.addprotect": "Protect with {0} ({1})",
   "nas.protectq": "Add {0} to {1} as its mirror? Everything on {0} is erased.",
   "nas.newstorage": "New storage",
@@ -423,6 +424,7 @@ const words = {
   "nas.imp.otherhost": "这个池上次由另一个系统（{0}）使用。那个系统已经不再用这些盘：接管这个池。",
   "nas.protected": "有保护",
   "nas.unprotected": "没有保护",
+  "nas.onhost": "在主机的存储上",
   "nas.addprotect": "用 {0}（{1}）加保护",
   "nas.protectq": "把 {0} 加进 {1} 做镜像？{0} 上原有的内容会被清掉。",
   "nas.newstorage": "新建存储",
@@ -700,6 +702,7 @@ const words = {
   "nas.imp.otherhost": "このプールは最後に別のシステム（{0}）で使われました。そのシステムはもうこれらのディスクを使っていません：プールを引き継ぎます。",
   "nas.protected": "保護あり",
   "nas.unprotected": "保護なし",
+  "nas.onhost": "ホストのストレージ上",
   "nas.addprotect": "{0}（{1}）で保護する",
   "nas.protectq": "{0} を {1} のミラーとして追加しますか？{0} の内容は消去されます。",
   "nas.newstorage": "ストレージを作成",
@@ -887,7 +890,10 @@ const Head = ({ title, label, onNew, info }) => html`<div class="row-head"><h3>$
 function Health({ h }) {
   return html`<span class=${"badge" + (h === "ONLINE" ? " ok" : "")}>${h === "ONLINE" ? t("nas.healthy") : h}</span>`;
 }
-const Protected = ({ p }) => html`<span class=${"badge" + (p.protected ? " ok" : "")}>${p.protected ? t("nas.protected") : t("nas.unprotected")}</span>`;
+// on_host: the storage is the host's virtual disks; protecting them is the host's business (it
+// warns there), so neither "not protected" nor a Protect button here.
+const Protected = ({ p }) => !p.protected && p.on_host ? html`<span class="badge">${t("nas.onhost")}</span>`
+  : html`<span class=${"badge" + (p.protected ? " ok" : "")}>${p.protected ? t("nas.protected") : t("nas.unprotected")}</span>`;
 const diskText = (d) => d.name + " · " + gib(d.size) + (d.model ? " · " + d.model : "") + (d.serial ? " · " + d.serial : "");
 
 // Alerts: what keelnasd says is wrong right now (keelNAS docs/04 §9.5), by code.
@@ -1199,7 +1205,7 @@ function Storage({ admin, onChange }) {
         <span class="muted small"> ${gib(p.used)} / ${gib(p.size)}</span>
         <span class="muted small"> · ${p.name}</span>
         ${admin && html`<span class="actions-inline">
-          ${!p.protected && (p.disks || []).length === 1 && free.length > 0 ? html` <button class="btn" onClick=${() => setDlg({ kind: "protect", pool: p, label: t("nas.storagen", i + 1) })}>${t("nas.protectbtn")}</button>`
+          ${!p.protected && !p.on_host && (p.disks || []).length === 1 && free.length > 0 ? html` <button class="btn" onClick=${() => setDlg({ kind: "protect", pool: p, label: t("nas.storagen", i + 1) })}>${t("nas.protectbtn")}</button>`
             : p.vdevs && p.vdevs.length === 1 && p.vdevs[0].type === "mirror" && free.length > 0 && html` <button class="btn" title=${t("pool.attach.tip")} onClick=${() => setDlg({ kind: "attach", pool: p, label: t("nas.storagen", i + 1) })}>${t("pool.attach")}…</button>`}
           ${p.vdevs && html` <button class="btn" onClick=${() => setDlg({ kind: "export", pool: p, label: t("nas.storagen", i + 1) })}>${t("nas.export")}…</button>
             <button class="btn danger" onClick=${() => setDlg({ kind: "delete", pool: p, label: t("nas.storagen", i + 1) })}>${t("nas.delete")}…</button>`}</span>`}</div>

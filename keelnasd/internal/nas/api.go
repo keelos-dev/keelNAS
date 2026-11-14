@@ -197,6 +197,7 @@ type PoolSummary struct {
 	Used      int64  `json:"used"`
 	Free      int64  `json:"free"`
 	Protected bool   `json:"protected"`
+	OnHost    bool   `json:"on_host,omitempty"` // virtual disks on the host's storage (PoolInfo.OnHost)
 }
 
 type LastApplyInfo struct {
@@ -285,7 +286,7 @@ func (s *Server) getStatus(r *http.Request) (any, error) {
 		return nil, err
 	}
 	for _, p := range pools {
-		stat.Pools = append(stat.Pools, PoolSummary{p.Name, p.Health, p.Size, p.Used, p.Free, p.Protected})
+		stat.Pools = append(stat.Pools, PoolSummary{p.Name, p.Health, p.Size, p.Used, p.Free, p.Protected, p.OnHost})
 	}
 	stat.Services = map[string]bool{"smbd": s.running("smbd"), "ctld": s.running("ctld")}
 	t, errs := s.LastApply()
@@ -423,7 +424,7 @@ func (s *Server) storage(st *State) ([]Storage, error) {
 	}
 	res := []Storage{}
 	for _, p := range pools {
-		x := Storage{PoolSummary: PoolSummary{p.Name, p.Health, p.Size, p.Used, p.Free, p.Protected}, Disks: []StorageDisk{},
+		x := Storage{PoolSummary: PoolSummary{p.Name, p.Health, p.Size, p.Used, p.Free, p.Protected, p.OnHost}, Disks: []StorageDisk{},
 			Scan: ScanFromStats(p.Scan, s.now()), Vdevs: []StorageVdev{}, Expand: poolGrowth(p)}
 		for _, t := range p.Tops {
 			x.Vdevs = append(x.Vdevs, StorageVdev{t.Name, t.Type, t.Size})

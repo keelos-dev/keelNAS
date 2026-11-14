@@ -145,7 +145,7 @@ func TestParsers(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(pools) != 2 || pools[1].Name != "tank" || pools[1].GUID != "13474932555875689274" ||
-		pools[1].Size != 8053063680 || pools[1].Protected || len(pools[1].Members) != 1 || pools[1].Members[0].Path != "/dev/vtbd1" {
+		pools[1].Size != 8053063680 || pools[1].Protected || !pools[1].OnHost || len(pools[1].Members) != 1 || pools[1].Members[0].Path != "/dev/vtbd1" {
 		t.Fatalf("pools %+v", pools)
 	}
 	labels := ParseGlabel(readTestdata(t, "glabel.txt"))

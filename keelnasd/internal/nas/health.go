@@ -69,7 +69,7 @@ func ComputeAlerts(in AlertInput) []Alert {
 		if p.Health == "MISSING" {
 			continue
 		}
-		if !p.Protected {
+		if !p.Protected && !p.OnHost {
 			add("warning", "pool_no_protection", p.Name, "Storage %s is a single disk: a disk failure loses its data.", p.Name)
 		}
 		if p.Size > 0 && p.Used*10 >= p.Size*9 {

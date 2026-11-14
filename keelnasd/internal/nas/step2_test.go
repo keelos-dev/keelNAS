@@ -519,6 +519,9 @@ func TestComputeAlerts(t *testing.T) {
 	if fmt.Sprint(got) != fmt.Sprint(want) {
 		t.Errorf("alerts\n got %v\nwant %v", got, want)
 	}
+	if a := ComputeAlerts(AlertInput{Pools: []PoolInfo{{Name: "h", Health: "ONLINE", Size: 100, Used: 50, OnHost: true}}}); len(a) != 0 {
+		t.Fatalf("a pool on the host's virtual disks is the host's to protect: %+v", a)
+	}
 	if a := ComputeAlerts(AlertInput{Pools: []PoolInfo{{Name: "t", Health: "ONLINE", Size: 100, Used: 50, Protected: true}}}); len(a) != 0 {
 		t.Errorf("healthy: %+v", a)
 	}
@@ -549,8 +552,13 @@ func TestStatusNewFields(t *testing.T) {
 		}
 		return "", nil, false
 	}
+	// On the host's virtual disk (vtbd1): the host's to protect, no alert here.
+	if _, m := do(t, ts, "GET", "/v1/status", ""); m["alerts"] != float64(0) {
+		t.Errorf("vtbd pool: %v", m)
+	}
+	// On a real disk (da1): a single disk, one pool_no_protection alert.
+	w.status = strings.ReplaceAll(w.status, "/dev/vtbd1", "/dev/da1")
 	c, m := do(t, ts, "GET", "/v1/status", "")
-	// The fake pool is a single disk: one pool_no_protection alert.
 	if c != 200 || fmt.Sprint(m["addresses"]) != "[192.0.2.10]" || m["alerts"] != float64(1) || m["restored_from"] != "" {
 		t.Errorf("status: %v", m)
 	}

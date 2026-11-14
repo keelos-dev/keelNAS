@@ -270,6 +270,13 @@ var nameRE = regexp.MustCompile(`^[a-z][a-z0-9_-]{0,31}$`)
 // ValidName: lower-case letters, digits, - and _, a letter first, at most 32.
 func ValidName(n string) bool { return nameRE.MatchString(n) }
 
+// syncNameRE: an account from keelAuth may also have inner dots (first.last; keelAuth docs/02
+// §11): not first, not last, never two in a row. FreeBSD's pw and Samba take them.
+var syncNameRE = regexp.MustCompile(`^[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)*$`)
+
+// ValidSyncName: the name of a user synced from keelAuth (local users keep ValidName).
+func ValidSyncName(n string) bool { return len(n) <= 32 && syncNameRE.MatchString(n) }
+
 // reservedShares are section names Samba treats specially.
 var reservedShares = []string{"global", "homes", "printers", "print"}
 

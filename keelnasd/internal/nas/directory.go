@@ -416,7 +416,7 @@ func (s *Server) putDirectory(r *http.Request) (any, error) {
 		}
 		have, inPw := pw[u.Name]
 		switch {
-		case !ValidName(u.Name):
+		case !ValidSyncName(u.Name):
 			du.Problem = "bad_name"
 		case u.UID < SyncIDMin || u.UID > syncIDMax || uids[u.UID] > 1:
 			du.Problem = "bad_uid"

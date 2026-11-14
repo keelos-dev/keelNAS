@@ -110,9 +110,13 @@ type PoolInfo struct {
 	Used      int64
 	Free      int64
 	Protected bool
-	Members   []Member // leaf vdevs
-	Tops      []Top    // top-level vdevs (a disk, mirror-0, raidz1-0…), by name
-	Scan      Scan
+	// OnHost: every disk is a virtio disk, i.e. a virtual disk of the keelOS host on the host's
+	// own storage. Whether that is protected is the host's business (it warns there), so keelNAS
+	// does not call such a pool unprotected, nor offer a mirror on the same host storage.
+	OnHost  bool
+	Members []Member // leaf vdevs
+	Tops    []Top    // top-level vdevs (a disk, mirror-0, raidz1-0…), by name
+	Scan    Scan
 	// ExpandSize: zpool list's expandsize, what zpool online -e would add (0: none known)
 	ExpandSize int64
 }
@@ -219,6 +223,7 @@ func ParsePools(statusOut, listOut string) ([]PoolInfo, error) {
 		if root, ok := p.Vdevs[name]; ok {
 			walkVdevs(root, &pi, 0, "")
 		}
+		pi.OnHost = onHost(pi.Members)
 		if sc := p.Scan; sc != nil {
 			str := func(k string) string { var v string; json.Unmarshal(sc[k], &v); return v }
 			num := func(k string) int64 { var n json.Number; decodeNum(sc[k], &n); i, _ := n.Int64(); return i }
@@ -239,6 +244,18 @@ func ParsePools(statusOut, listOut string) ([]PoolInfo, error) {
 	}
 	sort.Slice(pools, func(i, j int) bool { return pools[i].Name < pools[j].Name })
 	return pools, nil
+}
+
+// onHost: all members are virtio disks (vtbd*); keel gives a guest only virtual disks on the
+// host's pools as virtio-blk. A member named by a label (gpt/…) is not resolved: false, and the
+// pool is judged as on real disks.
+func onHost(ms []Member) bool {
+	for _, m := range ms {
+		if !strings.HasPrefix(strings.TrimPrefix(m.Path, "/dev/"), "vtbd") {
+			return false
+		}
+	}
+	return len(ms) > 0
 }
 
 func walkVdevs(v zvdev, pi *PoolInfo, depth int, top string) {
