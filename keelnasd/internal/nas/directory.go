@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"maps"
 	"net/http"
 	"slices"
 	"strconv"
@@ -223,6 +224,47 @@ func (s *Server) applyDirectory(st *State, pw map[string]PwUser, fail func(strin
 			if _, err := s.run("", "pw", "groupdel", "-n", g.Name); err != nil {
 				fail("remove group %s: %v", g.Name, err)
 			}
+		}
+	}
+}
+
+// applyGroupMap gives every keelAuth group a name in Samba's own domain (a local group, net
+// groupmap): Windows' "select users or groups" box only takes names of the server's domain, so
+// without it a group shows as "Unix Group\\name" and cannot be typed or browsed there. The ACLs
+// on disk hold the gid either way. A mapping whose group is gone is removed. A group named like
+// a user is left alone (one name, one account in Samba's domain).
+func (s *Server) applyGroupMap(st *State, fail func(string, ...any)) {
+	groups, err := s.pwGroups()
+	if err != nil {
+		fail("groups: %v", err)
+		return
+	}
+	out, err := s.Sys.Run("", "net", "groupmap", "list")
+	if err != nil {
+		fail("net groupmap list: %v", err)
+		return
+	}
+	have := map[string]bool{}
+	for _, l := range strings.Split(out, "\n") { // name (S-1-5-21-…) -> unix group
+		i, j := strings.LastIndex(l, " (S-"), strings.LastIndex(l, ") -> ")
+		if i < 0 || j < i {
+			continue
+		}
+		nt, unix := l[:i], l[j+5:]
+		if g, ok := groups[unix]; ok && nt == unix && g.GID >= SyncIDMin && g.GID <= syncIDMax && st.User(unix) == nil {
+			have[unix] = true
+			continue
+		}
+		if _, err := s.run("", "net", "groupmap", "delete", "ntgroup="+nt); err != nil {
+			fail("net groupmap delete %s: %v", nt, err)
+		}
+	}
+	for _, name := range sorted(slices.Collect(maps.Keys(groups))) {
+		if g := groups[name]; have[name] || g.GID < SyncIDMin || g.GID > syncIDMax || st.User(name) != nil {
+			continue
+		}
+		if _, err := s.run("", "net", "groupmap", "add", "ntgroup="+name, "unixgroup="+name, "type=local"); err != nil {
+			fail("net groupmap add %s: %v", name, err)
 		}
 	}
 }

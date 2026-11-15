@@ -231,6 +231,7 @@ func (s *Server) applyLocked() []string {
 	if err != nil {
 		fail("%s: %v", CtlConf, err)
 	}
+	s.applyGroupMap(st, fail) // needs smb4.conf (where Samba's databases are)
 	// Restored passwords go in once the users and smb4.conf exist.
 	if err := s.importPasswords(); err != nil {
 		fail("restore the Samba passwords: %v", err)

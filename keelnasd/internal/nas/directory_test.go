@@ -2,6 +2,8 @@ package nas
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"slices"
 	"strconv"
 	"strings"
@@ -410,5 +412,32 @@ func TestDirectoryHelpers(t *testing.T) {
 		map[string]string{"empty": "/shares/empty"}, nil)
 	if !strings.Contains(conf, "[empty]\n  path = /shares/empty\n  available = no\n") || strings.Contains(conf, "valid users = \n") {
 		t.Errorf("empty share:\n%s", conf)
+	}
+}
+
+func TestGroupMap(t *testing.T) {
+	fk := sys.NewFake()
+	s := &Server{Sys: fk, Log: log.New(io.Discard, "", 0)}
+	fk.Handle = func(line, _ string) (string, error, bool) {
+		switch line {
+		case "pw groupshow -a":
+			return "wheel:*:0:root\nkeelnas:*:2000:\nfinancial:*:2132106911:a\nsales:*:2133334509:b\nalice:*:2133334999:\n", nil, true
+		case "net groupmap list":
+			return "sales (S-1-5-21-1-2-3-1000) -> sales\nold one (S-1-5-21-1-2-3-1001) -> gone\n", nil, true
+		}
+		return "", nil, true
+	}
+	st := &State{Users: []User{{Name: "alice"}}}
+	var errs []string
+	s.applyGroupMap(st, func(f string, a ...any) { errs = append(errs, fmt.Sprintf(f, a...)) })
+	var got []string
+	for _, c := range fk.Calls {
+		if strings.HasPrefix(c, "net groupmap ") && c != "net groupmap list" {
+			got = append(got, c)
+		}
+	}
+	want := []string{"net groupmap delete ntgroup=old one", "net groupmap add ntgroup=financial unixgroup=financial type=local"}
+	if !slices.Equal(got, want) || len(errs) > 0 {
+		t.Errorf("got %q (errors %v), want %q", got, errs, want)
 	}
 }

@@ -243,12 +243,18 @@ func (s *Server) folders(sh Share, root string) []Folder {
 	return res
 }
 
-// folderGuests: the names in the lists of the share's folders that are not in the share's own
-// lists. They must pass the share's root (ShareACL) and Samba's "valid users" to reach their folder.
+// folderGuests: the names in the ACLs of the share's folders that are not in the share's own
+// lists: the page's lists, and whatever a manager gave in Windows' security tab (any entry of the
+// folder's own that lets a name read or enter). They must pass the share's root (ShareACL) and
+// Samba's "valid users" to reach their folder.
 func (s *Server) folderGuests(st *State, sh Share, root string) []string {
 	var out []string
 	for _, f := range s.folders(sh, root) {
-		for _, n := range append(slices.Clone(f.RW), f.RO...) {
+		for _, a := range parseACL(f.ACL) {
+			if !a.named() || a.inherited() || a.kind != "allow" || !strings.ContainsAny(a.perm, "rx") {
+				continue
+			}
+			n := shareName(a.who)
 			if aclWho(st, n) != "" && !slices.Contains(sh.RW, n) && !slices.Contains(sh.RO, n) && !slices.Contains(sh.Managers, n) {
 				out = append(out, n)
 			}
@@ -256,6 +262,30 @@ func (s *Server) folderGuests(st *State, sh Share, root string) []string {
 	}
 	slices.Sort(out)
 	return slices.Compact(out)
+}
+
+// guestsTick (every minute): a manager who gives a folder to somebody in Windows changes only
+// the folder's ACL. When the names that must pass a share's root are no longer the ones of the
+// last apply, apply again (the root's ACL and "valid users").
+func (s *Server) guestsTick() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	st := s.st
+	if len(st.Shares) == 0 {
+		return
+	}
+	ds := s.datasets()
+	for _, sh := range st.Shares {
+		p := ds[sh.Dataset].Mountpoint
+		if !strings.HasPrefix(p, "/") {
+			continue
+		}
+		if g := s.folderGuests(st, sh, p); !slices.Equal(g, s.guests[sh.Name]) {
+			s.Log.Printf("share %s: the folders' lists name %v besides the share's own: apply", sh.Name, g)
+			s.applyLocked()
+			return
+		}
+	}
 }
 
 // validFolderName: what Windows takes as a folder name (Japanese is fine).

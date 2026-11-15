@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"keelnas/internal/sys"
 )
@@ -226,6 +227,22 @@ func TestFolders(t *testing.T) {
 	}
 	is("like the share", filepath.Join(home, "共通"), append([]string{"user:alice" + mod + "fd----I:allow", "user:bob" + mod + "fd----I:allow"}, tail("fd----I")...)...)
 	is("root without the guest", home, append([]string{"user:alice" + mod + "fd-----:allow", "user:bob" + mod + "fd-----:allow"}, tail("fd-----")...)...)
+	// a manager gives the folder to somebody else in Windows' security tab (an entry of its own
+	// next to the inherited ones): the next tick lets that name pass the root and Samba
+	kyotsu := filepath.Join(home, "共通")
+	store.mu.Lock()
+	store.acl[kyotsu] = append([]string{"user:carol:r-x---a-R-c---:fd-----:allow"}, store.acl[kyotsu]...)
+	store.mu.Unlock()
+	s.Tick(time.Date(2026, 11, 15, 3, 7, 0, 0, time.UTC), nil, nil)
+	is("root with Windows' guest", home, append([]string{"user:alice" + mod + "fd-----:allow", "user:bob" + mod + "fd-----:allow", "user:carol" + read + "-------:allow"}, tail("fd-----")...)...)
+	if !strings.Contains(conf(), "  valid users = alice bob carol\n") {
+		t.Errorf("valid users after Windows' change:\n%s", conf())
+	}
+	store.mu.Lock()
+	store.acl[kyotsu] = store.acl[kyotsu][1:]
+	store.mu.Unlock()
+	s.Tick(time.Date(2026, 11, 15, 3, 8, 0, 0, time.UTC), nil, nil)
+	is("root after Windows took it back", home, append([]string{"user:alice" + mod + "fd-----:allow", "user:bob" + mod + "fd-----:allow"}, tail("fd-----")...)...)
 	for body, want := range map[string]int{`{"inherit":true,"rw":["alice"]}`: 400, `{}`: 400, `{"rw":["nobody"]}`: 400} {
 		if c, m := call("PUT", "/v1/shares/cst/folders/共通", body); c != want {
 			t.Errorf("PUT 共通 %s: %d (want %d) %v", body, c, want, m)

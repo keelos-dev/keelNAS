@@ -55,6 +55,9 @@ func (s *Server) Tick(t time.Time, force, only []string) TickResult {
 	if want(JobScrub, true) { // each pool's plan says when (scrub.go); cheap when nothing is due
 		s.scrubTick(t, slices.Contains(force, JobScrub), &res)
 	}
+	if only == nil {
+		s.guestsTick() // folders.go
+	}
 	s.hmu.Lock()
 	smartDue := s.lastSmart.IsZero() || t.Sub(s.lastSmart) >= 24*time.Hour
 	s.hmu.Unlock()
