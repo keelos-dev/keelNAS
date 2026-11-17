@@ -2,6 +2,7 @@ package nas
 
 import (
 	"net/http"
+	"strings"
 )
 
 // Handing the settings to a new system disk (keelOS docs/54 §4.7, docs/05 section 9): keelOS
@@ -10,7 +11,9 @@ import (
 // back from the pool's copy (Restore), without one they would be lost. So keel asks the old
 // keelnasd for them before it shuts the guest down (GET /v1/state/export) and gives them to the
 // new one once it answers (POST /v1/state/import). The key and listen address are not part of
-// the hand-over: the seed disk gives them again.
+// the hand-over: the seed disk gives them again. The backup key is (it is on the system disk
+// only, and the pools' state copies leave it out on purpose): it is put back even when the
+// new system already took the settings from a pool.
 
 // Handover is what export gives and import takes: the state and the Samba passwords
 // (pdbedit -L -w, the same text as a pool's .keelnas/smbpasswd).
@@ -18,6 +21,7 @@ type Handover struct {
 	State     *State `json:"state"`
 	Smbpasswd string `json:"smbpasswd"`
 	Version   string `json:"version,omitempty"` // the keelnasd that wrote it
+	BackupKey string `json:"backup_key,omitempty"`
 }
 
 func (s *Server) getStateExport(r *http.Request) (any, error) {
@@ -29,7 +33,11 @@ func (s *Server) getStateExport(r *http.Request) (any, error) {
 	if err != nil && len(st.Users) > 0 {
 		return nil, err
 	}
-	return Handover{State: st, Smbpasswd: pw, Version: s.Version}, nil
+	h := Handover{State: st, Smbpasswd: pw, Version: s.Version}
+	if b, err := s.Sys.ReadFile(s.bkKeyPath()); err == nil {
+		h.BackupKey = strings.TrimSpace(string(b))
+	}
+	return h, nil
 }
 
 // Import takes settings handed over from the keelNAS this one replaces, if the state is fresh
@@ -39,6 +47,7 @@ func (s *Server) Import(h Handover) ([]string, error) {
 	if h.State == nil {
 		return nil, bad("state missing")
 	}
+	s.importBackupKey(h.BackupKey)
 	s.mu.Lock()
 	if !s.st.Fresh() {
 		s.mu.Unlock()
@@ -65,6 +74,22 @@ func (s *Server) Import(h Handover) ([]string, error) {
 		errs = append(errs, "network: "+err.Error())
 	}
 	return errs, nil
+}
+
+// importBackupKey writes a handed-over backup key when this system disk has none.
+func (s *Server) importBackupKey(k string) {
+	k = strings.ToLower(strings.TrimSpace(k))
+	if !pinRE.MatchString(k) {
+		return
+	}
+	if _, err := s.Sys.ReadFile(s.bkKeyPath()); err == nil {
+		return
+	}
+	if err := s.Sys.WriteFile(s.bkKeyPath(), []byte(k), 0o600); err != nil {
+		s.Log.Printf("backup: write the handed-over backup key: %v", err)
+		return
+	}
+	s.Log.Printf("backup: took the handed-over backup key")
 }
 
 func (s *Server) postStateImport(r *http.Request) (any, error) {

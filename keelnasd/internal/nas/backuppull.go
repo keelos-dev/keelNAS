@@ -225,7 +225,7 @@ func (s *Server) bkEnsureBase(pool string) error {
 	kp := s.bkKeyPath()
 	if _, err := s.Sys.ReadFile(kp); err != nil {
 		if _, e := s.Sys.Run("", "zfs", "list", "-H", "-o", "name", base); e == nil {
-			return fmt.Errorf("%s exists but the backup key is missing on this keelNAS: enter the saved key (Backups → key)", base)
+			return fmt.Errorf("%s exists but the backup key is missing on this keelNAS: enter the saved key or discard the copies (warning at the top of this tab)", base)
 		}
 		b := make([]byte, 32)
 		rand.Read(b)
@@ -576,7 +576,29 @@ func (s *Server) getBackups(r *http.Request) (any, error) {
 		out = append(out, o)
 	}
 	_, kerr := s.Sys.ReadFile(s.bkKeyPath())
-	return map[string]any{"sources": out, "keep": st.backupKeep(), "key_set": kerr == nil, "default_hour": DefaultBackupHour}, nil
+	lost := s.bkLostBases()
+	if lost == nil {
+		lost = []string{}
+	}
+	return map[string]any{"sources": out, "keep": st.backupKeep(), "key_set": kerr == nil, "key_lost": lost, "default_hour": DefaultBackupHour}, nil
+}
+
+// bkLostBases: the <pool>/keelbackup datasets there are while this keelNAS has no backup key
+// (its system disk was replaced without the key: they open only with the saved key, or are
+// discarded with POST /v1/backups/key/reset).
+func (s *Server) bkLostBases() []string {
+	if _, err := s.Sys.ReadFile(s.bkKeyPath()); err == nil {
+		return nil
+	}
+	var out []string
+	for _, pool := range s.importedPools() {
+		base := pool + "/" + BackupDS
+		if _, err := s.Sys.Run("", "zfs", "list", "-H", "-o", "name", base); err == nil {
+			out = append(out, base)
+		}
+	}
+	slices.Sort(out)
+	return out
 }
 
 // POST /v1/backups {"token", "pool", "hour"}: checks the token against the source, then adds it.
@@ -755,8 +777,50 @@ func (s *Server) postBackupKey(r *http.Request) (any, error) {
 	if _, err := s.Sys.ReadFile(s.bkKeyPath()); err == nil {
 		return nil, conflict("this keelNAS has a backup key already")
 	}
+	// the key must open the copies there are: tried from a file beside it first
+	try := s.bkKeyPath() + ".try"
+	if err := s.Sys.WriteFile(try, []byte(k), 0o600); err != nil {
+		return nil, err
+	}
+	defer s.Sys.Run("", "rm", "-f", try)
+	for _, base := range s.bkLostBases() {
+		if _, err := s.Sys.Run("", "zfs", "load-key", "-n", "-L", "file://"+try, base); err != nil {
+			return nil, bad("this key does not open %s", base)
+		}
+	}
 	if err := s.Sys.WriteFile(s.bkKeyPath(), []byte(k), 0o600); err != nil {
 		return nil, err
 	}
+	s.Log.Printf("backup: a saved backup key was put back")
 	return map[string]any{}, nil
+}
+
+// POST /v1/backups/key/reset {"confirm": "discard"}: the key is lost: destroy the copies it
+// locked (every <pool>/keelbackup); the next fetch makes a new key and starts again.
+func (s *Server) postBackupKeyReset(r *http.Request) (any, error) {
+	var req struct {
+		Confirm string `json:"confirm"`
+	}
+	if err := decode(r, &req); err != nil {
+		return nil, err
+	}
+	if req.Confirm != "discard" {
+		return nil, bad(`confirm must be "discard"`)
+	}
+	if _, err := s.Sys.ReadFile(s.bkKeyPath()); err == nil {
+		return nil, conflict("this keelNAS has its backup key: nothing to discard")
+	}
+	for _, src := range s.State().Backups {
+		if _, running := s.bkGet(src.Name); running {
+			return nil, conflict("a fetch of %s is running", src.Name)
+		}
+	}
+	lost := s.bkLostBases()
+	for _, base := range lost {
+		if _, err := s.run("", "zfs", "destroy", "-r", base); err != nil {
+			return nil, fmt.Errorf("destroy %s: %v", base, err)
+		}
+	}
+	s.Log.Printf("backup: key lost, discarded %v", lost)
+	return map[string]any{"discarded": lost}, nil
 }

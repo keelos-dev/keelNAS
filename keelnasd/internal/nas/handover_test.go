@@ -2,6 +2,7 @@ package nas
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http/httptest"
@@ -71,5 +72,99 @@ func TestHandover(t *testing.T) {
 	// not fresh any more: refused
 	if c, _ := do(t, ts2, "POST", "/v1/state/import", string(b)); c != 409 {
 		t.Errorf("second import: %d", c)
+	}
+}
+
+// The backup key is on the system disk only: it goes with the hand-over and is put back even
+// when the new system already took its settings from a pool (import answers 409 then).
+func TestHandoverBackupKey(t *testing.T) {
+	s, _, _, ts := newTestServer(t)
+	key := strings.Repeat("ab", 32)
+	if err := s.Sys.WriteFile(s.bkKeyPath(), []byte(key), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	_, m := do(t, ts, "GET", "/v1/state/export", "")
+	if m["backup_key"] != key {
+		t.Fatalf("export without the backup key: %v", m)
+	}
+	b, _ := json.Marshal(m)
+
+	_, f2 := newWorld(t)
+	s2, err := NewServer(f2, StatePath, "test2", log.New(io.Discard, "", 0))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts2 := httptest.NewServer(s2.Handler())
+	defer ts2.Close()
+	do(t, ts2, "POST", "/v1/users", `{"name":"bob","password":"x"}`) // not fresh: as if restored from a pool
+	if c, _ := do(t, ts2, "POST", "/v1/state/import", string(b)); c != 409 {
+		t.Fatalf("import into a restored system: %d", c)
+	}
+	if got, err := f2.ReadFile(s2.bkKeyPath()); err != nil || string(got) != key {
+		t.Fatalf("backup key not put back: %q %v", got, err)
+	}
+	// a key there already is never replaced
+	other := strings.Repeat("cd", 32)
+	s2.importBackupKey(other)
+	if got, _ := f2.ReadFile(s2.bkKeyPath()); string(got) != key {
+		t.Errorf("key replaced: %q", got)
+	}
+}
+
+// The key is lost (system disk replaced without it): the page is told, a wrong key is refused,
+// the right one is taken, or the copies are discarded.
+func TestBackupKeyLost(t *testing.T) {
+	s, w, _, ts := newTestServer(t)
+	do(t, ts, "POST", "/v1/storage", `{"disks":["vtbd1"]}`)
+	good := strings.Repeat("ab", 32)
+	destroyed := false
+	w.extra = func(line string, a []string) (string, error, bool) {
+		switch {
+		case line == "zfs list -H -o name tank/"+BackupDS:
+			if destroyed {
+				return "", errors.New("does not exist"), true
+			}
+			return "tank/" + BackupDS + "\n", nil, true
+		case strings.HasPrefix(line, "zfs load-key -n -L file://"):
+			k, _ := s.Sys.ReadFile(strings.TrimPrefix(a[4], "file://"))
+			if string(k) != good {
+				return "", errors.New("incorrect key provided"), true
+			}
+			return "", nil, true
+		case line == "zfs destroy -r tank/"+BackupDS:
+			destroyed = true
+			return "", nil, true
+		}
+		return "", nil, false
+	}
+	_, m := do(t, ts, "GET", "/v1/backups", "")
+	if l, _ := m["key_lost"].([]any); len(l) != 1 || l[0] != "tank/"+BackupDS {
+		t.Fatalf("key_lost %v", m["key_lost"])
+	}
+	if c, _ := do(t, ts, "POST", "/v1/backups/key", `{"key":"zz"}`); c != 400 {
+		t.Errorf("bad key: %d", c)
+	}
+	if c, _ := do(t, ts, "POST", "/v1/backups/key/reset", `{}`); c != 400 {
+		t.Errorf("reset without confirm: %d", c)
+	}
+	if c, m := do(t, ts, "POST", "/v1/backups/key/reset", `{"confirm":"discard"}`); c != 200 || !destroyed {
+		t.Fatalf("reset: %d %v", c, m)
+	}
+	_, m = do(t, ts, "GET", "/v1/backups", "")
+	if l, _ := m["key_lost"].([]any); len(l) != 0 {
+		t.Errorf("still lost after the reset: %v", l)
+	}
+	destroyed = false // the copies are there again: a wrong key is refused, the right one taken
+	if c, _ := do(t, ts, "POST", "/v1/backups/key", `{"key":"`+strings.Repeat("cd", 32)+`"}`); c != 400 {
+		t.Errorf("wrong key: %d", c)
+	}
+	if _, err := s.Sys.ReadFile(s.bkKeyPath()); err == nil {
+		t.Errorf("wrong key written")
+	}
+	if c, m := do(t, ts, "POST", "/v1/backups/key", `{"key":"`+good+`"}`); c != 200 {
+		t.Fatalf("put key: %d %v", c, m)
+	}
+	if c, _ := do(t, ts, "POST", "/v1/backups/key/reset", `{"confirm":"discard"}`); c != 409 {
+		t.Errorf("reset with a key: %d", c)
 	}
 }

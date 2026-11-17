@@ -352,6 +352,12 @@ const words = {
   "nas.bk.keyset": "The copies are encrypted with a key that is only on this keelNAS's system disk.",
   "nas.bk.keynone": "The encryption key is made with the first fetch.",
   "nas.bk.showkey": "Show the key",
+  "nas.bk.lost": "The backup encryption key is not on this keelNAS (its system disk was replaced without it), so the copies in %s cannot be opened. Enter the saved key, or discard these copies and start again (the next fetch makes a new key).",
+  "nas.bk.lostkey": "Enter the saved key",
+  "nas.bk.lostreset": "Discard the copies and start again",
+  "nas.bk.lostresetq": "Discard all backup copies in %s? They cannot be opened without the old key. The next fetch makes a new key and starts again with full copies.",
+  "nas.bk.keyput": "The saved key (64 hex characters)",
+  "nas.bk.keyok": "The key is back: the copies open again.",
   "nas.bk.key": "Backup encryption key",
   "nas.bk.keynote": "Keep it somewhere safe (a password manager, on paper). If this keelNAS's system disk is lost, the copies can only be opened with it.",
   "nas.bk.old": "This keelNAS is too old to fetch backups: upgrade it.",
@@ -727,6 +733,12 @@ const words = {
   "nas.bk.keyset": "备份用只在这台 keelNAS 系统盘上的钥匙加密。",
   "nas.bk.keynone": "加密钥匙在第一次取的时候生成。",
   "nas.bk.showkey": "显示钥匙",
+  "nas.bk.lost": "这台 keelNAS 上没有备份的加密钥匙了（系统盘换过、钥匙没跟过来），%s 里的备份打不开。输入保存的钥匙，或者丢掉这些备份重新开始（下次取的时候生成新钥匙）。",
+  "nas.bk.lostkey": "输入保存的钥匙",
+  "nas.bk.lostreset": "丢掉备份、重新开始",
+  "nas.bk.lostresetq": "丢掉 %s 里的全部备份？没有原来的钥匙打不开它们。下次取的时候生成新钥匙，从完整的一份重新开始。",
+  "nas.bk.keyput": "保存的钥匙（64 个十六进制字符）",
+  "nas.bk.keyok": "钥匙放回去了，备份又能打开了。",
   "nas.bk.key": "备份加密钥匙",
   "nas.bk.keynote": "存到安全的地方（密码管理器、纸上）。这台 keelNAS 的系统盘丢了，备份只能用它打开。",
   "nas.bk.old": "这台 keelNAS 太旧，不能取备份：请升级。",
@@ -1102,6 +1114,12 @@ const words = {
   "nas.bk.keyset": "コピーはこの keelNAS のシステムディスクにだけある鍵で暗号化されています。",
   "nas.bk.keynone": "暗号化の鍵は初回取得時に作られます。",
   "nas.bk.showkey": "鍵を表示",
+  "nas.bk.lost": "この keelNAS にバックアップの暗号化鍵がありません（システムディスクが鍵なしで入れ替わりました）。%s のコピーは開けません。保存した鍵を入力するか、コピーを破棄してやり直してください（次の取得で新しい鍵が作られます）。",
+  "nas.bk.lostkey": "保存した鍵を入力",
+  "nas.bk.lostreset": "コピーを破棄してやり直す",
+  "nas.bk.lostresetq": "%s のバックアップコピーをすべて破棄しますか？元の鍵がなければ開けません。次の取得で新しい鍵を作り、完全なコピーからやり直します。",
+  "nas.bk.keyput": "保存した鍵（16 進 64 文字）",
+  "nas.bk.keyok": "鍵を戻しました。コピーをまた開けます。",
   "nas.bk.key": "バックアップの暗号化鍵",
   "nas.bk.keynote": "安全な場所（パスワード管理ツール、紙）に保管してください。この keelNAS のシステムディスクを失った場合、コピーはこの鍵でしか開けません。",
   "nas.bk.old": "この keelNAS は古いためバックアップを取得できません：アップグレードしてください。",
@@ -2214,6 +2232,14 @@ function BackupKeepForm({ keep, onClose, onDone }) {
   <//>`;
 }
 
+function BackupKeyPut({ onClose, onDone }) {
+  const [k, setK] = useState("");
+  const save = async () => { await api("POST", NB + "/backups/key", { key: k }); toast(t("nas.bk.keyok")); onDone(); };
+  return html`<${FormDialog} title=${t("nas.bk.lostkey")} submit=${t("nas.save")} onSubmit=${save} onClose=${onClose}>
+    <label>${t("nas.bk.keyput")}<input class="mono" required pattern="[0-9a-fA-F]{64}" autocomplete="off" value=${k} onInput=${(e) => setK(e.target.value.trim())} /></label>
+  <//>`;
+}
+
 function Backups({ admin, tick }) {
   const [d, setD] = useState(null);
   const [err, setErr] = useState(null);
@@ -2249,8 +2275,16 @@ function Backups({ admin, tick }) {
     : b.paused ? html`<span class="badge">${t("nas.bk.paused")}</span>`
     : b.error ? html`<span class="badge" style="color:var(--danger);border-color:var(--danger)" title=${b.error}>${t("nas.bk.failed")}</span>`
     : b.last_at ? html`<span class="badge ok">${t("nas.bk.ok")}</span>` : html`<span class="badge">${t("nas.bk.never")}</span>`;
+  const lost = d.key_lost || [];
+  const reset = async () => {
+    if (!await ask(t("nas.bk.lostresetq", lost.join(", ")))) return;
+    act(() => api("POST", NB + "/backups/key/reset", { confirm: "discard" }));
+  };
   return html`<div class="card"><${Head} title=${t("nas.tab.backups")} label=${admin && pools.length > 0 && t("nas.bk.add")} onNew=${() => setDlg({ kind: "add" })} />
     <p class="muted small">${t("nas.bk.what")}</p>
+    ${lost.length > 0 && html`<div class="warn"><p>${t("nas.bk.lost", lost.join(", "))}</p>
+      ${admin && html`<p><button class="btn primary" onClick=${() => setDlg({ kind: "keyput" })}>${t("nas.bk.lostkey")}</button>
+        <button class="btn" onClick=${reset}>${t("nas.bk.lostreset")}</button></p>`}</div>`}
     ${pools.length === 0 && html`<p class="warn">${t("nas.bk.nopool")}</p>`}
     ${d.sources.length === 0 ? html`<p class="muted">${t("nas.bk.none")}</p>` : html`<div class="table-wrap"><table class="data plain">
       <thead><tr><th>${t("nas.bk.source")}</th><th>${t("nas.bk.state")}</th><th>${t("nas.bk.last")}</th><th>${t("nas.bk.copies")}</th><th>${t("nas.bk.size")}</th><th>${t("nas.bk.hour")}</th><th></th></tr></thead>
@@ -2273,6 +2307,7 @@ function Backups({ admin, tick }) {
     ${dlg && dlg.kind === "edit" && html`<${BackupEdit} b=${dlg.b} onClose=${() => setDlg(null)} onDone=${() => { setDlg(null); reload(); }} />`}
     ${dlg && dlg.kind === "archive" && html`<${ArchiveSearch} b=${dlg.b} onClose=${() => setDlg(null)} />`}
     ${dlg && dlg.kind === "keep" && html`<${BackupKeepForm} keep=${d.keep} onClose=${() => setDlg(null)} onDone=${() => { setDlg(null); reload(); }} />`}
+    ${dlg && dlg.kind === "keyput" && html`<${BackupKeyPut} onClose=${() => setDlg(null)} onDone=${() => { setDlg(null); reload(); }} />`}
     ${dlg && dlg.kind === "key" && html`<${Dialog} title=${t("nas.bk.key")} onClose=${() => setDlg(null)}>
       <p class="mono" style="word-break:break-all;user-select:all">${dlg.key}</p><p class="warn small">${t("nas.bk.keynote")}</p><//>`}
   </div>`;

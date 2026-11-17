@@ -105,6 +105,7 @@ func (s *Server) Handler() http.Handler {
 	m.HandleFunc("PUT /v1/backups/keep", s.wrap(s.putBackupKeep))
 	m.HandleFunc("GET /v1/backups/key", s.wrap(s.getBackupKey))
 	m.HandleFunc("POST /v1/backups/key", s.wrap(s.postBackupKey))
+	m.HandleFunc("POST /v1/backups/key/reset", s.wrap(s.postBackupKeyReset))
 	m.HandleFunc("PUT /v1/backups/{name}", s.wrap(s.putBackup))
 	m.HandleFunc("DELETE /v1/backups/{name}", s.wrap(s.deleteBackup))
 	m.HandleFunc("POST /v1/backups/{name}/fetch", s.wrap(s.postBackupFetch))

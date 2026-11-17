@@ -148,10 +148,14 @@ func TestFolders(t *testing.T) {
 	}
 
 	// a folder like the share, and one of its own: 経理 for alice only
-	for body, want := range map[string]int{`{"name":"共通"}`: 200, `{"name":"経理","rw":["alice"]}`: 200, `{"name":"経理"}`: 409,
-		`{"name":"a/b"}`: 400, `{"name":".zfs"}`: 400, `{"name":"x","rw":["nobody"]}`: 400, `{"name":"y","rw":["alice"],"ro":["alice"]}`: 400} {
-		if c, m := call("POST", "/v1/shares/cst/folders", body); c != want {
-			t.Errorf("POST folders %s: %d (want %d) %v", body, c, want, m)
+	// in this order (the second 経理 is the duplicate; a map would run them in any order)
+	for _, x := range []struct {
+		body string
+		want int
+	}{{`{"name":"共通"}`, 200}, {`{"name":"経理","rw":["alice"]}`, 200}, {`{"name":"経理"}`, 409},
+		{`{"name":"a/b"}`, 400}, {`{"name":".zfs"}`, 400}, {`{"name":"x","rw":["nobody"]}`, 400}, {`{"name":"y","rw":["alice"],"ro":["alice"]}`, 400}} {
+		if c, m := call("POST", "/v1/shares/cst/folders", x.body); c != x.want {
+			t.Errorf("POST folders %s: %d (want %d) %v", x.body, c, x.want, m)
 		}
 	}
 	if c, _ := call("POST", "/v1/shares/nope/folders", `{"name":"x"}`); c != 404 {
