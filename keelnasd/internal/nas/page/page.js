@@ -285,6 +285,35 @@ const words = {
   "nas.missing": "The virtual machine of this keelNAS is gone (deleted).",
   "nas.tab.network": "Network",
   "nas.tab.backups": "Backup fetching",
+  "nas.ar.open": "Search mail",
+  "nas.ar.title": "Mail archive in the backups of {0}",
+  "nas.ar.what": "keelMail's archive (every message, 30 days each) inside the copies kept here: up to a year back. Searches, views and downloads are recorded.",
+  "nas.ar.audit": "Audit log",
+  "nas.ar.noaudit": "Nothing yet.",
+  "nas.ar.a.search": "search",
+  "nas.ar.a.view": "view",
+  "nas.ar.a.download": "download",
+  "nas.ar.from_d": "From",
+  "nas.ar.to_d": "To",
+  "nas.ar.dir": "Direction",
+  "nas.ar.dir.all": "all",
+  "nas.ar.dir.in": "received",
+  "nas.ar.dir.out": "sent",
+  "nas.ar.dir.internal": "internal",
+  "nas.ar.from": "Sender",
+  "nas.ar.to": "Recipient",
+  "nas.ar.subject": "Subject",
+  "nas.ar.att": "Attachment",
+  "nas.ar.body": "Text contains",
+  "nas.ar.search": "Search",
+  "nas.ar.searching": "Searching the copies…",
+  "nas.ar.n": "{0} messages",
+  "nas.ar.more": "the newest {0} shown: narrow the conditions",
+  "nas.ar.missing": "{0} … {1} are not in a backup yet: search them on keelMail.",
+  "nas.ar.time": "Time",
+  "nas.ar.nosubject": "(no subject)",
+  "nas.ar.copy": "From the copy",
+  "nas.ar.eml": "Download (.eml)",
   "nas.bk.what": "keelNAS fetches the daily backups of other keel systems (keelMail, keelAuth …) every night with their read-only pull token and keeps them here, encrypted, by its own rules. Whoever breaks into such a system cannot delete them here.",
   "nas.bk.add": "Add a source",
   "nas.bk.addgo": "Check and add",
@@ -631,6 +660,35 @@ const words = {
   "nas.missing": "这台 keelNAS 的虚拟机已经不在了（被删除）。",
   "nas.tab.network": "网络",
   "nas.tab.backups": "备份取回",
+  "nas.ar.open": "检索邮件",
+  "nas.ar.title": "{0} 备份里的邮件留存",
+  "nas.ar.what": "keelMail 的留存（每封邮件，各留 30 天）在这里保存的各份备份里：最多往前一年。检索、查看、下载都有记录。",
+  "nas.ar.audit": "审计日志",
+  "nas.ar.noaudit": "还没有。",
+  "nas.ar.a.search": "检索",
+  "nas.ar.a.view": "查看",
+  "nas.ar.a.download": "下载",
+  "nas.ar.from_d": "从",
+  "nas.ar.to_d": "到",
+  "nas.ar.dir": "方向",
+  "nas.ar.dir.all": "全部",
+  "nas.ar.dir.in": "收到",
+  "nas.ar.dir.out": "发出",
+  "nas.ar.dir.internal": "社内",
+  "nas.ar.from": "发件人",
+  "nas.ar.to": "收件人",
+  "nas.ar.subject": "主题",
+  "nas.ar.att": "附件",
+  "nas.ar.body": "正文包含",
+  "nas.ar.search": "检索",
+  "nas.ar.searching": "正在检索各份备份…",
+  "nas.ar.n": "{0} 封",
+  "nas.ar.more": "只显示最新的 {0} 封：请缩小条件",
+  "nas.ar.missing": "{0} … {1} 还不在备份里：请在 keelMail 上检索。",
+  "nas.ar.time": "时间",
+  "nas.ar.nosubject": "（无主题）",
+  "nas.ar.copy": "来自备份",
+  "nas.ar.eml": "下载（.eml）",
   "nas.bk.what": "keelNAS 每晚用其他 keel 系统（keelMail、keelAuth…）的只读取回令牌取它们每天的备份，加密存在这里，按自己的规则保留。有人攻进那些系统也删不掉这里的。",
   "nas.bk.add": "添加源",
   "nas.bk.addgo": "检查并添加",
@@ -977,6 +1035,35 @@ const words = {
   "nas.missing": "この keelNAS の仮想マシンはありません（削除済み）。",
   "nas.tab.network": "ネットワーク",
   "nas.tab.backups": "バックアップ取得",
+  "nas.ar.open": "メール検索",
+  "nas.ar.title": "{0} のバックアップ内のメールアーカイブ",
+  "nas.ar.what": "ここに保管しているバックアップに含まれる keelMail のアーカイブ（全メール、各 30 日分）を検索します：最大 1 年前まで。検索・閲覧・ダウンロードは記録されます。",
+  "nas.ar.audit": "監査ログ",
+  "nas.ar.noaudit": "まだありません。",
+  "nas.ar.a.search": "検索",
+  "nas.ar.a.view": "閲覧",
+  "nas.ar.a.download": "ダウンロード",
+  "nas.ar.from_d": "開始日",
+  "nas.ar.to_d": "終了日",
+  "nas.ar.dir": "方向",
+  "nas.ar.dir.all": "すべて",
+  "nas.ar.dir.in": "受信",
+  "nas.ar.dir.out": "送信",
+  "nas.ar.dir.internal": "社内",
+  "nas.ar.from": "差出人",
+  "nas.ar.to": "宛先",
+  "nas.ar.subject": "件名",
+  "nas.ar.att": "添付",
+  "nas.ar.body": "本文に含む",
+  "nas.ar.search": "検索",
+  "nas.ar.searching": "バックアップを検索中…",
+  "nas.ar.n": "{0} 通",
+  "nas.ar.more": "最新の {0} 通だけ表示：条件を絞ってください",
+  "nas.ar.missing": "{0} 〜 {1} はまだバックアップにありません：keelMail で検索してください。",
+  "nas.ar.time": "日時",
+  "nas.ar.nosubject": "（件名なし）",
+  "nas.ar.copy": "取得元のコピー",
+  "nas.ar.eml": "ダウンロード（.eml）",
   "nas.bk.what": "keelNAS は他の keel システム（keelMail、keelAuth など）の毎日のバックアップを、読み取り専用の取得キーで毎晩取りに行き、ここに暗号化して自分のルールで保管します。それらのシステムに侵入されても、ここのデータは消せません。",
   "nas.bk.add": "取得元を追加",
   "nas.bk.addgo": "確認して追加",
@@ -1998,6 +2085,87 @@ function Hardware() {
   </div>`;
 }
 
+// Searching a keelMail's archive inside its backups (keelMail docs/09 §4).
+const isoDay = (d) => d.toISOString().slice(0, 10);
+
+function ArchiveView({ b, e, onClose }) {
+  const [m, setM] = useState(null);
+  const path = NB + "/backups/" + encodeURIComponent(b.name) + "/archive/msg/" + encodeURIComponent(e.id) + "?snap=" + encodeURIComponent(e.snap);
+  useEffect(() => { api("GET", path).then(setM).catch((x) => { toast(x.message, 8000); onClose(); }); }, []);
+  const download = async () => {
+    try {
+      const r = await api("GET", path + "&eml=1");
+      const bin = Uint8Array.from(atob(r.eml), (c) => c.charCodeAt(0));
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([bin], { type: "message/rfc822" }));
+      a.download = e.id + ".eml";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    } catch (x) { toast(x.message, 8000); }
+  };
+  return html`<${Dialog} title=${e.subject || t("nas.ar.nosubject")} onClose=${onClose} wide=${true}>
+    <table class="data plain"><tbody>
+      <tr><td class="muted">${t("nas.ar.time")}</td><td>${fmtTime(e.t)} · ${t("nas.ar.dir." + e.dir)}</td></tr>
+      <tr><td class="muted">${t("nas.ar.from")}</td><td>${e.from}</td></tr>
+      <tr><td class="muted">${t("nas.ar.to")}</td><td>${e.to.join(", ")}</td></tr>
+      ${(e.att || []).length > 0 && html`<tr><td class="muted">${t("nas.ar.att")}</td><td>${e.att.join(", ")}</td></tr>`}
+      <tr><td class="muted">${t("nas.ar.copy")}</td><td class="mono small">${e.snap}</td></tr>
+    </tbody></table>
+    ${!m ? html`<${Spinner} />` : html`<pre style="white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto;padding:10px;border:1px solid var(--line)">${m.text}</pre>`}
+    <p><button class="btn" onClick=${download}>${t("nas.ar.eml")}</button></p>
+  <//>`;
+}
+
+function ArchiveAudit({ onClose }) {
+  const [l, setL] = useState(null);
+  useEffect(() => { api("GET", NB + "/backups/archive-audit").then((r) => setL(r.audit)).catch((x) => toast(x.message, 8000)); }, []);
+  const what = (a) => (typeof a.what === "string" ? a.what : Object.entries(a.what || {}).filter(([, v]) => v && v[0]).map(([k, v]) => k + "=" + v[0]).join(" "));
+  return html`<${Dialog} title=${t("nas.ar.audit")} onClose=${onClose} wide=${true}>
+    ${!l ? html`<${Spinner} />` : l.length === 0 ? html`<p class="muted">${t("nas.ar.noaudit")}</p>` : html`<div class="table-wrap tall"><table class="data plain">
+      <tbody>${l.map((a) => html`<tr><td>${fmtTime(a.t)}</td><td>${a.who || a.via}</td><td>${t("nas.ar.a." + a.action)}</td><td class="mono small">${what(a)}</td></tr>`)}</tbody></table></div>`}
+  <//>`;
+}
+
+function ArchiveSearch({ b, onClose }) {
+  const now = new Date();
+  const [q, setQ] = useState({ from: isoDay(new Date(now - 90 * 864e5)), to: isoDay(now), dir: "", sender: "", rcpt: "", subject: "", att: "", body: "" });
+  const [r, setR] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(null);
+  const [audit, setAudit] = useState(false);
+  const go = async (ev) => {
+    if (ev) ev.preventDefault();
+    setBusy(true);
+    const p = new URLSearchParams(Object.entries(q).filter(([, v]) => v !== ""));
+    try { setR(await api("GET", NB + "/backups/" + encodeURIComponent(b.name) + "/archive?" + p)); } catch (x) { toast(x.message, 8000); }
+    setBusy(false);
+  };
+  const f = (k) => ({ value: q[k], onInput: (e) => setQ({ ...q, [k]: e.target.value }) });
+  return html`<${Dialog} title=${t("nas.ar.title", b.label_now || b.label || b.name)} onClose=${onClose} wide=${true}>
+    <p class="muted small">${t("nas.ar.what")} <a href="javascript:void 0" onClick=${() => setAudit(true)}>${t("nas.ar.audit")}</a></p>
+    <form onSubmit=${go} style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px 10px;align-items:end">
+      <label>${t("nas.ar.from_d")}<input type="date" required ...${f("from")} /></label>
+      <label>${t("nas.ar.to_d")}<input type="date" required ...${f("to")} /></label>
+      <label>${t("nas.ar.dir")}<select value=${q.dir} onChange=${(e) => setQ({ ...q, dir: e.target.value })}>${["", "in", "out", "internal"].map((d) => html`<option value=${d}>${t("nas.ar.dir." + (d || "all"))}</option>`)}</select></label>
+      <label>${t("nas.ar.from")}<input type="text" ...${f("sender")} /></label>
+      <label>${t("nas.ar.to")}<input type="text" ...${f("rcpt")} /></label>
+      <label>${t("nas.ar.subject")}<input type="text" ...${f("subject")} /></label>
+      <label>${t("nas.ar.att")}<input type="text" placeholder="*" ...${f("att")} /></label>
+      <label>${t("nas.ar.body")}<input type="text" ...${f("body")} /></label>
+      <div><button class="primary" type="submit" disabled=${busy}>${busy ? t("nas.ar.searching") : t("nas.ar.search")}</button></div>
+    </form>
+    ${r && html`<p><b>${t("nas.ar.n", r.total)}</b>${r.total > r.results.length ? html` <span class="warn small">${t("nas.ar.more", r.results.length)}</span>` : ""}
+      ${r.missing.length > 0 && html`<br /><span class="muted small">${t("nas.ar.missing", r.missing[0], r.missing[r.missing.length - 1])}</span>`}</p>
+      ${r.results.length > 0 && html`<div class="table-wrap tall"><table class="data plain">
+        <thead><tr><th>${t("nas.ar.time")}</th><th>${t("nas.ar.dir")}</th><th>${t("nas.ar.from")}</th><th>${t("nas.ar.to")}</th><th>${t("nas.ar.subject")}</th></tr></thead>
+        <tbody>${r.results.map((e) => html`<tr style="cursor:pointer" onClick=${() => setOpen(e)}><td>${fmtTime(e.t)}</td><td>${t("nas.ar.dir." + e.dir)}</td>
+          <td class="small">${e.from}</td><td class="small">${e.to.slice(0, 2).join(", ")}${e.to.length > 2 ? " +" + (e.to.length - 2) : ""}</td>
+          <td>${e.subject || t("nas.ar.nosubject")}${(e.att || []).length ? " 📎" : ""}</td></tr>`)}</tbody></table></div>`}`}
+    ${open && html`<${ArchiveView} b=${b} e=${open} onClose=${() => setOpen(null)} />`}
+    ${audit && html`<${ArchiveAudit} onClose=${() => setAudit(false)} />`}
+  <//>`;
+}
+
 // Fetching backups of other keel systems (keelMail, keelAuth …; keelNAS docs/08): the sources,
 // fetch now, pause, the hour, how long keelNAS keeps them, the encryption key.
 const hourUTC = (h) => String(h).padStart(2, "0") + ":00 UTC";
@@ -2057,6 +2225,13 @@ function Backups({ admin, tick }) {
     api("GET", NB + "/backups").then((r) => { setD(r); setErr(null); }).catch(setErr);
     api("GET", NB + "/status").then((r) => setPools(r.pools || [])).catch(() => {});
   }, [k, tick]);
+  // while a fetch runs: read again every three seconds (progress, then the result)
+  const busy = d && d.sources.some((b) => b.running);
+  useEffect(() => {
+    if (!busy) return undefined;
+    const id = setInterval(reload, 3000);
+    return () => clearInterval(id);
+  }, [busy]);
   if (err) return html`<div class="card"><h3>${t("nas.tab.backups")}</h3><p class=${err.status === 404 ? "warn" : "error"}>${err.status === 404 ? t("nas.bk.old") : err.message}</p></div>`;
   if (!d) return html`<${Spinner} />`;
   const act = async (fn) => { try { await fn(); reload(); } catch (e) { toast(e.message, 8000); } };
@@ -2070,7 +2245,7 @@ function Backups({ admin, tick }) {
   const showKey = async () => {
     try { const r = await api("GET", NB + "/backups/key"); setDlg({ kind: "key", key: r.key }); } catch (e) { toast(e.message, 8000); }
   };
-  const state = (b) => b.running ? html`<span class="badge">${t("nas.bk.running")}</span>`
+  const state = (b) => b.running ? html`<span class="badge">${t("nas.bk.running")}</span>${b.moved > 0 ? html` <span class="muted small">${(b.moved / 1048576).toFixed(1)} MiB</span>` : ""}`
     : b.paused ? html`<span class="badge">${t("nas.bk.paused")}</span>`
     : b.error ? html`<span class="badge" style="color:var(--danger);border-color:var(--danger)" title=${b.error}>${t("nas.bk.failed")}</span>`
     : b.last_at ? html`<span class="badge ok">${t("nas.bk.ok")}</span>` : html`<span class="badge">${t("nas.bk.never")}</span>`;
@@ -2080,13 +2255,14 @@ function Backups({ admin, tick }) {
     ${d.sources.length === 0 ? html`<p class="muted">${t("nas.bk.none")}</p>` : html`<div class="table-wrap"><table class="data plain">
       <thead><tr><th>${t("nas.bk.source")}</th><th>${t("nas.bk.state")}</th><th>${t("nas.bk.last")}</th><th>${t("nas.bk.copies")}</th><th>${t("nas.bk.size")}</th><th>${t("nas.bk.hour")}</th><th></th></tr></thead>
       <tbody>${d.sources.map((b) => html`<tr>
-        <td><b>${b.label || b.name}</b> <span class="muted small">${b.kind} · ${b.host}</span></td>
+        <td><b>${b.label_now || b.label || b.name}</b> <span class="muted small">${b.kind} · ${b.host}</span></td>
         <td>${state(b)}${b.error && html`<div class="error small">${b.error}</div>`}</td>
         <td>${b.last_at ? html`${fmtTime(b.last_at)} <span class="muted small mono">${b.last_snap}</span>` : "–"}</td>
         <td>${b.snapshots.length}${b.snapshots.length > 0 && html` <span class="muted small">${t("nas.bk.oldest", fmtTime(b.snapshots[0].time))}</span>`}</td>
         <td>${gib(b.used)}</td><td>${hourUTC(b.hour)}</td>
         <td class="nowrap">${admin && html`<button class="btn" disabled=${b.running} onClick=${() => fetchNow(b)}>${t("nas.bk.now")}</button>
           <button class="btn" onClick=${() => pause(b)}>${t(b.paused ? "nas.bk.resume" : "nas.bk.pause")}</button>
+          ${b.kind === "keelmail" && b.snapshots.length > 0 && html`<button class="btn" onClick=${() => setDlg({ kind: "archive", b })}>${t("nas.ar.open")}</button>`}
           <button class="btn" onClick=${() => setDlg({ kind: "edit", b })}>${t("nas.edit")}</button>
           <button class="btn" disabled=${b.running} onClick=${() => del(b)}>${t("nas.bk.delete")}</button>`}</td></tr>`)}</tbody></table></div>`}
     <p class="muted small">${t("nas.bk.keepnow", d.keep.daily, d.keep.monthly)}
@@ -2095,6 +2271,7 @@ function Backups({ admin, tick }) {
       ${admin && d.key_set && html` <a href="javascript:void 0" onClick=${showKey}>${t("nas.bk.showkey")}</a>`}</p>
     ${dlg && dlg.kind === "add" && html`<${BackupAdd} pools=${pools} defHour=${d.default_hour} onClose=${() => setDlg(null)} onDone=${() => { setDlg(null); reload(); }} />`}
     ${dlg && dlg.kind === "edit" && html`<${BackupEdit} b=${dlg.b} onClose=${() => setDlg(null)} onDone=${() => { setDlg(null); reload(); }} />`}
+    ${dlg && dlg.kind === "archive" && html`<${ArchiveSearch} b=${dlg.b} onClose=${() => setDlg(null)} />`}
     ${dlg && dlg.kind === "keep" && html`<${BackupKeepForm} keep=${d.keep} onClose=${() => setDlg(null)} onDone=${() => { setDlg(null); reload(); }} />`}
     ${dlg && dlg.kind === "key" && html`<${Dialog} title=${t("nas.bk.key")} onClose=${() => setDlg(null)}>
       <p class="mono" style="word-break:break-all;user-select:all">${dlg.key}</p><p class="warn small">${t("nas.bk.keynote")}</p><//>`}

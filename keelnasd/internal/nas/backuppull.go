@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -83,7 +84,8 @@ type bkStatus struct {
 	LastSnap  string `json:"last_snap,omitempty"`
 	LastBytes int64  `json:"last_bytes,omitempty"`
 	TriedAt   string `json:"tried_at,omitempty"`
-	Error     string `json:"error,omitempty"` // of the last try; "" after a good one
+	Error     string `json:"error,omitempty"`     // of the last try; "" after a good one
+	LabelNow  string `json:"label_now,omitempty"` // what the source called itself at the last fetch
 }
 
 type bkRuntime struct {
@@ -91,13 +93,14 @@ type bkRuntime struct {
 	loaded  bool
 	status  map[string]*bkStatus
 	running map[string]bool
+	moved   map[string]*atomic.Int64 // bytes of the running fetch so far
 }
 
 // ---- the token and the source's interface ----
 
 var (
-	pinRE  = regexp.MustCompile(`^[0-9a-f]{64}$`)
-	secRE  = regexp.MustCompile(`^[A-Za-z0-9_-]{20,128}$`)
+	pinRE    = regexp.MustCompile(`^[0-9a-f]{64}$`)
+	secRE    = regexp.MustCompile(`^[A-Za-z0-9_-]{20,128}$`)
 	bkNameRE = regexp.MustCompile(`[^a-z0-9-]+`)
 )
 
@@ -321,7 +324,7 @@ func (s *Server) bkLoad() {
 	if s.bk.loaded {
 		return
 	}
-	s.bk.loaded, s.bk.status, s.bk.running = true, map[string]*bkStatus{}, map[string]bool{}
+	s.bk.loaded, s.bk.status, s.bk.running, s.bk.moved = true, map[string]*bkStatus{}, map[string]bool{}, map[string]*atomic.Int64{}
 	if b, err := s.Sys.ReadFile(filepath.Join(filepath.Dir(s.StatePath), backupStatFile)); err == nil {
 		json.Unmarshal(b, &s.bk.status)
 	}
@@ -357,22 +360,32 @@ func (s *Server) bkGet(name string) (bkStatus, bool) {
 type countingReader struct {
 	r io.Reader
 	n int64
+	m *atomic.Int64 // the page's progress (may be nil)
 }
 
 func (c *countingReader) Read(p []byte) (int, error) {
 	n, err := c.r.Read(p)
 	c.n += int64(n)
+	if c.m != nil {
+		c.m.Store(c.n)
+	}
 	return n, err
 }
 
 // bkFetch fetches the newest snapshot of a source (full the first time, then incremental).
 func (s *Server) bkFetch(ctx context.Context, src BackupSource, keep BackupKeep) (string, int64, error) {
+	s.bk.mu.Lock()
+	moved := s.bk.moved[src.Name]
+	s.bk.mu.Unlock()
 	if err := s.bkEnsureBase(src.Pool); err != nil {
 		return "", 0, err
 	}
 	in, err := bkGetInfo(ctx, src)
 	if err != nil {
 		return "", 0, err
+	}
+	if in.Name != "" && in.Name != src.Label {
+		s.bkSet(src.Name, func(b *bkStatus) { b.LabelNow = in.Name })
 	}
 	if len(in.Snapshots) == 0 {
 		return "", 0, errors.New("the source has no daily snapshot yet")
@@ -407,7 +420,7 @@ func (s *Server) bkFetch(ctx context.Context, src BackupSource, keep BackupKeep)
 		return "", 0, err
 	}
 	defer resp.Body.Close()
-	cr := &countingReader{r: resp.Body}
+	cr := &countingReader{r: resp.Body, m: moved}
 	// -u: not mounted; -x mountpoint: the copy inherits keelbackup's "none" (a copied /var/log
 	// must never be mounted over keelNAS's own); -x encryption: a replication stream carries the
 	// source's encryption=off, which would make the copy unencrypted under the encrypted
@@ -445,12 +458,14 @@ func (s *Server) bkStart(name string, wait bool) error {
 		return conflict("a fetch of %s is running", name)
 	}
 	s.bk.running[name] = true
+	s.bk.moved[name] = &atomic.Int64{}
 	s.bk.mu.Unlock()
 	run := func() {
 		start := s.now()
 		snap, n, err := s.bkFetch(context.Background(), srcCopy, keep)
 		s.bk.mu.Lock()
 		delete(s.bk.running, name)
+		delete(s.bk.moved, name)
 		s.bk.mu.Unlock()
 		s.bkSet(name, func(b *bkStatus) {
 			b.TriedAt = start.Format(time.RFC3339)
@@ -534,6 +549,7 @@ type backupOut struct {
 	Dataset   string   `json:"dataset"`
 	Used      int64    `json:"used"`
 	Running   bool     `json:"running"`
+	Moved     int64    `json:"moved,omitempty"` // bytes of the running fetch so far
 	Snapshots []bkSnap `json:"snapshots"`
 	bkStatus
 }
@@ -546,6 +562,11 @@ func (s *Server) getBackups(r *http.Request) (any, error) {
 		ds := src.Pool + "/" + BackupDS + "/" + src.Name
 		b, running := s.bkGet(src.Name)
 		o := backupOut{BackupSource: src, Dataset: ds, Running: running, bkStatus: b, Snapshots: s.bkSnaps(ds)}
+		s.bk.mu.Lock()
+		if m := s.bk.moved[src.Name]; m != nil {
+			o.Moved = m.Load()
+		}
+		s.bk.mu.Unlock()
 		if o.Snapshots == nil {
 			o.Snapshots = []bkSnap{}
 		}
