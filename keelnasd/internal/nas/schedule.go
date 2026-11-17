@@ -56,7 +56,8 @@ func (s *Server) Tick(t time.Time, force, only []string) TickResult {
 		s.scrubTick(t, slices.Contains(force, JobScrub), &res)
 	}
 	if only == nil {
-		s.guestsTick() // folders.go
+		s.guestsTick()  // folders.go
+		s.backupTick(t) // backuppull.go
 	}
 	s.hmu.Lock()
 	smartDue := s.lastSmart.IsZero() || t.Sub(s.lastSmart) >= 24*time.Hour

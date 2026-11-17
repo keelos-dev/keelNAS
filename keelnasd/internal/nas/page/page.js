@@ -284,6 +284,48 @@ const words = {
   "nas.resume": "Resume keelNAS",
   "nas.missing": "The virtual machine of this keelNAS is gone (deleted).",
   "nas.tab.network": "Network",
+  "nas.tab.backups": "Backup fetching",
+  "nas.bk.what": "keelNAS fetches the daily backups of other keel systems (keelMail, keelAuth …) every night with their read-only pull token and keeps them here, encrypted, by its own rules. Whoever breaks into such a system cannot delete them here.",
+  "nas.bk.add": "Add a source",
+  "nas.bk.addgo": "Check and add",
+  "nas.bk.added": "{0} added: the first fetch is at its hour (or “Fetch now”)",
+  "nas.bk.token": "Pull token",
+  "nas.bk.tokenhint": "Made on the source: keelMail → Backup → Fetched by the backup machine → Make a pull token. keelNAS connects to the source now to check it.",
+  "nas.bk.pool": "Storage",
+  "nas.bk.hour": "Fetch at",
+  "nas.bk.hourhint": "Every day at this hour (UTC: keelNAS has no time zone of its own; 17:00 UTC is 02:00 in Japan). After a failure it tries again every hour.",
+  "nas.bk.newtoken": "New pull token (empty: keep)",
+  "nas.bk.newtokenhint": "After a new token was made on the source.",
+  "nas.bk.keep": "How long to keep",
+  "nas.bk.keepd": "Daily copies to keep",
+  "nas.bk.keepm": "Monthly copies to keep (the first of each month)",
+  "nas.bk.keepnow": "Kept here: the newest {0} daily copies and the first of each of the last {1} months.",
+  "nas.bk.source": "Source",
+  "nas.bk.state": "State",
+  "nas.bk.last": "Last fetched",
+  "nas.bk.copies": "Copies",
+  "nas.bk.oldest": "oldest {0}",
+  "nas.bk.size": "Size",
+  "nas.bk.running": "fetching",
+  "nas.bk.paused": "paused",
+  "nas.bk.failed": "failed",
+  "nas.bk.ok": "ok",
+  "nas.bk.never": "not yet",
+  "nas.bk.now": "Fetch now",
+  "nas.bk.fetching": "Fetching: it runs in the background",
+  "nas.bk.pause": "Pause",
+  "nas.bk.resume": "Resume",
+  "nas.bk.delete": "Remove",
+  "nas.bk.delq": "Stop fetching {0}?",
+  "nas.bk.deldataq": "Also delete the copies kept here ({0})? Cancel keeps them.",
+  "nas.bk.none": "No sources yet.",
+  "nas.bk.nopool": "Make a storage first: the copies are kept on it.",
+  "nas.bk.keyset": "The copies are encrypted with a key that is only on this keelNAS's system disk.",
+  "nas.bk.keynone": "The encryption key is made with the first fetch.",
+  "nas.bk.showkey": "Show the key",
+  "nas.bk.key": "Backup encryption key",
+  "nas.bk.keynote": "Keep it somewhere safe (a password manager, on paper). If this keelNAS's system disk is lost, the copies can only be opened with it.",
+  "nas.bk.old": "This keelNAS is too old to fetch backups: upgrade it.",
   "nas.tab.hardware": "Hardware",
   "nas.hw.what": "Every disk of this keelNAS with what SMART says now: health, temperature, power-on time, reallocated and pending sectors (wear and media errors on NVMe). The health mark opens everything the disk reports about itself. Read from the disks when the page opens and every minute while it is open; a sleeping disk is left asleep and shows the daily check's values.",
   "nas.hw.old": "This keelNAS is too old for the hardware page: upgrade it (overview, upgrade) to a version from 2026-10-14 or later.",
@@ -588,6 +630,48 @@ const words = {
   "nas.resume": "恢复 keelNAS",
   "nas.missing": "这台 keelNAS 的虚拟机已经不在了（被删除）。",
   "nas.tab.network": "网络",
+  "nas.tab.backups": "备份取回",
+  "nas.bk.what": "keelNAS 每晚用其他 keel 系统（keelMail、keelAuth…）的只读取回令牌取它们每天的备份，加密存在这里，按自己的规则保留。有人攻进那些系统也删不掉这里的。",
+  "nas.bk.add": "添加源",
+  "nas.bk.addgo": "检查并添加",
+  "nas.bk.added": "已添加 {0}：到点第一次取（或点“现在取”）",
+  "nas.bk.token": "取回令牌",
+  "nas.bk.tokenhint": "在源上做：keelMail → 备份 → 由备份机来取 → 做取回令牌。keelNAS 现在就连过去检查。",
+  "nas.bk.pool": "存储",
+  "nas.bk.hour": "取的时间",
+  "nas.bk.hourhint": "每天这个钟点（UTC：keelNAS 没有自己的时区；17:00 UTC 是日本的 02:00）。失败后每小时再试。",
+  "nas.bk.newtoken": "新的取回令牌（空：不变）",
+  "nas.bk.newtokenhint": "源上重新做了令牌之后。",
+  "nas.bk.keep": "保留多久",
+  "nas.bk.keepd": "每天的留几份",
+  "nas.bk.keepm": "每月的留几份（每月第一份）",
+  "nas.bk.keepnow": "这里保留：最新 {0} 份每天的，和最近 {1} 个月每月的第一份。",
+  "nas.bk.source": "源",
+  "nas.bk.state": "状态",
+  "nas.bk.last": "上次取到",
+  "nas.bk.copies": "份数",
+  "nas.bk.oldest": "最早 {0}",
+  "nas.bk.size": "大小",
+  "nas.bk.running": "正在取",
+  "nas.bk.paused": "暂停",
+  "nas.bk.failed": "失败",
+  "nas.bk.ok": "正常",
+  "nas.bk.never": "还没取",
+  "nas.bk.now": "现在取",
+  "nas.bk.fetching": "开始取：在后台进行",
+  "nas.bk.pause": "暂停",
+  "nas.bk.resume": "继续",
+  "nas.bk.delete": "移除",
+  "nas.bk.delq": "不再取 {0}？",
+  "nas.bk.deldataq": "同时删除这里保存的备份（{0}）？取消就保留。",
+  "nas.bk.none": "还没有源。",
+  "nas.bk.nopool": "先建存储：备份放在上面。",
+  "nas.bk.keyset": "备份用只在这台 keelNAS 系统盘上的钥匙加密。",
+  "nas.bk.keynone": "加密钥匙在第一次取的时候生成。",
+  "nas.bk.showkey": "显示钥匙",
+  "nas.bk.key": "备份加密钥匙",
+  "nas.bk.keynote": "存到安全的地方（密码管理器、纸上）。这台 keelNAS 的系统盘丢了，备份只能用它打开。",
+  "nas.bk.old": "这台 keelNAS 太旧，不能取备份：请升级。",
   "nas.tab.hardware": "硬件",
   "nas.hw.what": "这台 keelNAS 的每块盘和 SMART 现在的读数：健康、温度、通电时间、重映射和待映射扇区（NVMe 是寿命和介质错误）。点健康一格看这块盘报告的全部内容。打开页面时从盘上读，打开期间每分钟读一次；休眠的盘不唤醒，显示每日巡检时的值。",
   "nas.hw.old": "这台 keelNAS 太旧，没有硬件页：升级到 2026-10-14 以后的版本（概览里升级）。",
@@ -892,6 +976,48 @@ const words = {
   "nas.resume": "keelNAS を再開",
   "nas.missing": "この keelNAS の仮想マシンはありません（削除済み）。",
   "nas.tab.network": "ネットワーク",
+  "nas.tab.backups": "バックアップ取得",
+  "nas.bk.what": "keelNAS は他の keel システム（keelMail、keelAuth など）の毎日のバックアップを、読み取り専用の取得キーで毎晩取りに行き、ここに暗号化して自分のルールで保管します。それらのシステムに侵入されても、ここのデータは消せません。",
+  "nas.bk.add": "取得元を追加",
+  "nas.bk.addgo": "確認して追加",
+  "nas.bk.added": "{0} を追加しました：指定時刻に初回取得します（または「今すぐ取得」）",
+  "nas.bk.token": "取得キー",
+  "nas.bk.tokenhint": "取得元で作ります：keelMail → バックアップ → バックアップ機による取得 → 取得キーを作成。keelNAS が今すぐ接続して確認します。",
+  "nas.bk.pool": "ストレージ",
+  "nas.bk.hour": "取得時刻",
+  "nas.bk.hourhint": "毎日この時刻（UTC：keelNAS は独自のタイムゾーンを持ちません。17:00 UTC は日本の 02:00）。失敗したら 1 時間ごとに再試行します。",
+  "nas.bk.newtoken": "新しい取得キー（空欄：変更しない）",
+  "nas.bk.newtokenhint": "取得元でキーを作り直したとき。",
+  "nas.bk.keep": "保管期間",
+  "nas.bk.keepd": "毎日のコピーの保管数",
+  "nas.bk.keepm": "毎月のコピーの保管数（各月の最初のもの）",
+  "nas.bk.keepnow": "ここでの保管：最新 {0} 日分と、直近 {1} か月の各月最初の 1 つ。",
+  "nas.bk.source": "取得元",
+  "nas.bk.state": "状態",
+  "nas.bk.last": "前回の取得",
+  "nas.bk.copies": "コピー数",
+  "nas.bk.oldest": "最古 {0}",
+  "nas.bk.size": "サイズ",
+  "nas.bk.running": "取得中",
+  "nas.bk.paused": "停止中",
+  "nas.bk.failed": "失敗",
+  "nas.bk.ok": "正常",
+  "nas.bk.never": "未取得",
+  "nas.bk.now": "今すぐ取得",
+  "nas.bk.fetching": "取得を開始しました（バックグラウンド）",
+  "nas.bk.pause": "一時停止",
+  "nas.bk.resume": "再開",
+  "nas.bk.delete": "削除",
+  "nas.bk.delq": "{0} の取得をやめますか？",
+  "nas.bk.deldataq": "ここに保管しているコピー（{0}）も削除しますか？キャンセルで残します。",
+  "nas.bk.none": "取得元はまだありません。",
+  "nas.bk.nopool": "先にストレージを作ってください：コピーはそこに保管します。",
+  "nas.bk.keyset": "コピーはこの keelNAS のシステムディスクにだけある鍵で暗号化されています。",
+  "nas.bk.keynone": "暗号化の鍵は初回取得時に作られます。",
+  "nas.bk.showkey": "鍵を表示",
+  "nas.bk.key": "バックアップの暗号化鍵",
+  "nas.bk.keynote": "安全な場所（パスワード管理ツール、紙）に保管してください。この keelNAS のシステムディスクを失った場合、コピーはこの鍵でしか開けません。",
+  "nas.bk.old": "この keelNAS は古いためバックアップを取得できません：アップグレードしてください。",
   "nas.tab.hardware": "ハードウェア",
   "nas.hw.what": "この keelNAS の各ディスクと SMART の現在の値：状態、温度、通電時間、代替処理済み／保留セクタ（NVMe は寿命とメディアエラー）。状態の欄を押すとディスクが報告する内容を全部見られます。ページを開いたときにディスクから読み、開いている間は毎分読み直します。スリープ中のディスクは起こさず、日次点検時の値を表示します。",
   "nas.hw.old": "この keelNAS は古く、ハードウェアページがありません。2026-10-14 以降の版に更新してください（概要から）。",
@@ -1872,8 +1998,111 @@ function Hardware() {
   </div>`;
 }
 
+// Fetching backups of other keel systems (keelMail, keelAuth …; keelNAS docs/08): the sources,
+// fetch now, pause, the hour, how long keelNAS keeps them, the encryption key.
+const hourUTC = (h) => String(h).padStart(2, "0") + ":00 UTC";
+
+function BackupAdd({ pools, defHour, onClose, onDone }) {
+  const [tok, setTok] = useState("");
+  const [pool, setPool] = useState(pools[0] ? pools[0].name : "");
+  const [hour, setHour] = useState(String(defHour));
+  const save = async () => {
+    const r = await api("POST", NB + "/backups", { token: tok.trim(), pool, hour: Number(hour) });
+    toast(t("nas.bk.added", r.label || r.name));
+    onDone();
+  };
+  return html`<${FormDialog} title=${t("nas.bk.add")} submit=${t("nas.bk.addgo")} onSubmit=${save} onClose=${onClose}>
+    <label>${t("nas.bk.token")}<textarea rows="3" required spellcheck="false" class="mono" value=${tok} onInput=${(e) => setTok(e.target.value)}></textarea></label>
+    <p class="muted small">${t("nas.bk.tokenhint")}</p>
+    ${pools.length > 1 && html`<label>${t("nas.bk.pool")}<select value=${pool} onChange=${(e) => setPool(e.target.value)}>${pools.map((p, i) => html`<option value=${p.name}>${t("nas.storagen", i + 1)}</option>`)}</select></label>`}
+    <label>${t("nas.bk.hour")}<select value=${hour} onChange=${(e) => setHour(e.target.value)}>${Array.from({ length: 24 }, (_, h) => html`<option value=${h}>${hourUTC(h)}</option>`)}</select></label>
+    <p class="muted small">${t("nas.bk.hourhint")}</p>
+  <//>`;
+}
+
+function BackupEdit({ b, onClose, onDone }) {
+  const [hour, setHour] = useState(String(b.hour));
+  const [tok, setTok] = useState("");
+  const save = async () => {
+    const body = { hour: Number(hour) };
+    if (tok.trim()) body.token = tok.trim();
+    await api("PUT", NB + "/backups/" + encodeURIComponent(b.name), body);
+    onDone();
+  };
+  return html`<${FormDialog} title=${b.label || b.name} submit=${t("nas.save")} onSubmit=${save} onClose=${onClose}>
+    <label>${t("nas.bk.hour")}<select value=${hour} onChange=${(e) => setHour(e.target.value)}>${Array.from({ length: 24 }, (_, h) => html`<option value=${h}>${hourUTC(h)}</option>`)}</select></label>
+    <label>${t("nas.bk.newtoken")}<textarea rows="3" spellcheck="false" class="mono" value=${tok} onInput=${(e) => setTok(e.target.value)}></textarea></label>
+    <p class="muted small">${t("nas.bk.newtokenhint")}</p>
+  <//>`;
+}
+
+function BackupKeepForm({ keep, onClose, onDone }) {
+  const [d, setD] = useState(String(keep.daily));
+  const [m, setM] = useState(String(keep.monthly));
+  const save = async () => { await api("PUT", NB + "/backups/keep", { daily: Number(d), monthly: Number(m) }); onDone(); };
+  return html`<${FormDialog} title=${t("nas.bk.keep")} submit=${t("nas.save")} onSubmit=${save} onClose=${onClose}>
+    <label>${t("nas.bk.keepd")}<input type="number" min="1" max="1000" required value=${d} onInput=${(e) => setD(e.target.value)} /></label>
+    <label>${t("nas.bk.keepm")}<input type="number" min="0" max="1000" required value=${m} onInput=${(e) => setM(e.target.value)} /></label>
+  <//>`;
+}
+
+function Backups({ admin, tick }) {
+  const [d, setD] = useState(null);
+  const [err, setErr] = useState(null);
+  const [dlg, setDlg] = useState(null);
+  const [pools, setPools] = useState([]);
+  const [k, setK] = useState(0);
+  const reload = () => setK((x) => x + 1);
+  useEffect(() => {
+    api("GET", NB + "/backups").then((r) => { setD(r); setErr(null); }).catch(setErr);
+    api("GET", NB + "/status").then((r) => setPools(r.pools || [])).catch(() => {});
+  }, [k, tick]);
+  if (err) return html`<div class="card"><h3>${t("nas.tab.backups")}</h3><p class=${err.status === 404 ? "warn" : "error"}>${err.status === 404 ? t("nas.bk.old") : err.message}</p></div>`;
+  if (!d) return html`<${Spinner} />`;
+  const act = async (fn) => { try { await fn(); reload(); } catch (e) { toast(e.message, 8000); } };
+  const fetchNow = (b) => act(async () => { await api("POST", NB + "/backups/" + encodeURIComponent(b.name) + "/fetch"); toast(t("nas.bk.fetching")); });
+  const pause = (b) => act(() => api("PUT", NB + "/backups/" + encodeURIComponent(b.name), { paused: !b.paused }));
+  const del = async (b) => {
+    if (!await ask(t("nas.bk.delq", b.label || b.name))) return;
+    const data = await ask(t("nas.bk.deldataq", gib(b.used)));
+    act(() => api("DELETE", NB + "/backups/" + encodeURIComponent(b.name) + (data ? "?data=1" : "")));
+  };
+  const showKey = async () => {
+    try { const r = await api("GET", NB + "/backups/key"); setDlg({ kind: "key", key: r.key }); } catch (e) { toast(e.message, 8000); }
+  };
+  const state = (b) => b.running ? html`<span class="badge">${t("nas.bk.running")}</span>`
+    : b.paused ? html`<span class="badge">${t("nas.bk.paused")}</span>`
+    : b.error ? html`<span class="badge" style="color:var(--danger);border-color:var(--danger)" title=${b.error}>${t("nas.bk.failed")}</span>`
+    : b.last_at ? html`<span class="badge ok">${t("nas.bk.ok")}</span>` : html`<span class="badge">${t("nas.bk.never")}</span>`;
+  return html`<div class="card"><${Head} title=${t("nas.tab.backups")} label=${admin && pools.length > 0 && t("nas.bk.add")} onNew=${() => setDlg({ kind: "add" })} />
+    <p class="muted small">${t("nas.bk.what")}</p>
+    ${pools.length === 0 && html`<p class="warn">${t("nas.bk.nopool")}</p>`}
+    ${d.sources.length === 0 ? html`<p class="muted">${t("nas.bk.none")}</p>` : html`<div class="table-wrap"><table class="data plain">
+      <thead><tr><th>${t("nas.bk.source")}</th><th>${t("nas.bk.state")}</th><th>${t("nas.bk.last")}</th><th>${t("nas.bk.copies")}</th><th>${t("nas.bk.size")}</th><th>${t("nas.bk.hour")}</th><th></th></tr></thead>
+      <tbody>${d.sources.map((b) => html`<tr>
+        <td><b>${b.label || b.name}</b> <span class="muted small">${b.kind} · ${b.host}</span></td>
+        <td>${state(b)}${b.error && html`<div class="error small">${b.error}</div>`}</td>
+        <td>${b.last_at ? html`${fmtTime(b.last_at)} <span class="muted small mono">${b.last_snap}</span>` : "–"}</td>
+        <td>${b.snapshots.length}${b.snapshots.length > 0 && html` <span class="muted small">${t("nas.bk.oldest", fmtTime(b.snapshots[0].time))}</span>`}</td>
+        <td>${gib(b.used)}</td><td>${hourUTC(b.hour)}</td>
+        <td class="nowrap">${admin && html`<button class="btn" disabled=${b.running} onClick=${() => fetchNow(b)}>${t("nas.bk.now")}</button>
+          <button class="btn" onClick=${() => pause(b)}>${t(b.paused ? "nas.bk.resume" : "nas.bk.pause")}</button>
+          <button class="btn" onClick=${() => setDlg({ kind: "edit", b })}>${t("nas.edit")}</button>
+          <button class="btn" disabled=${b.running} onClick=${() => del(b)}>${t("nas.bk.delete")}</button>`}</td></tr>`)}</tbody></table></div>`}
+    <p class="muted small">${t("nas.bk.keepnow", d.keep.daily, d.keep.monthly)}
+      ${admin && html` <a href="javascript:void 0" onClick=${() => setDlg({ kind: "keep" })}>${t("nas.edit")}</a>`}</p>
+    <p class="muted small">${t(d.key_set ? "nas.bk.keyset" : "nas.bk.keynone")}
+      ${admin && d.key_set && html` <a href="javascript:void 0" onClick=${showKey}>${t("nas.bk.showkey")}</a>`}</p>
+    ${dlg && dlg.kind === "add" && html`<${BackupAdd} pools=${pools} defHour=${d.default_hour} onClose=${() => setDlg(null)} onDone=${() => { setDlg(null); reload(); }} />`}
+    ${dlg && dlg.kind === "edit" && html`<${BackupEdit} b=${dlg.b} onClose=${() => setDlg(null)} onDone=${() => { setDlg(null); reload(); }} />`}
+    ${dlg && dlg.kind === "keep" && html`<${BackupKeepForm} keep=${d.keep} onClose=${() => setDlg(null)} onDone=${() => { setDlg(null); reload(); }} />`}
+    ${dlg && dlg.kind === "key" && html`<${Dialog} title=${t("nas.bk.key")} onClose=${() => setDlg(null)}>
+      <p class="mono" style="word-break:break-all;user-select:all">${dlg.key}</p><p class="warn small">${t("nas.bk.keynote")}</p><//>`}
+  </div>`;
+}
+
 // The sub-tabs: one thing per page instead of one long page.
-export const tabs = ["overview", "storage", "hardware", "shares", "users", "iscsi", "network"];
+export const tabs = ["overview", "storage", "hardware", "shares", "users", "iscsi", "network", "backups"];
 export const tabLabel = (k) => t("nas.tab." + k);
 
 export default function Page({ base, tab, here, admin, info, st, tick, bump }) {
@@ -1900,5 +2129,6 @@ export default function Page({ base, tab, here, admin, info, st, tick, bump }) {
     ${tab === "users" && html`<${Users} admin=${admin} tick=${tick} inst=${info.id} onChange=${bump} />`}
     ${tab === "iscsi" && html`<${LUNs} admin=${admin} tick=${tick} />`}
     ${tab === "network" && html`<${Net} admin=${admin} />`}
+    ${tab === "backups" && html`<${Backups} admin=${admin} tick=${tick} />`}
   </div>`;
 }

@@ -37,6 +37,7 @@ type Server struct {
 	pendingPasswd []byte // restored Samba passwords not imported yet
 
 	jobs     jobs // background jobs (jobs.go)
+	bk       bkRuntime // backup fetching (backuppull.go)
 	syncJobs bool // tests: a job is finished when its POST answers
 	// guests: per share, the names that are only in a folder's list (folders.go), as the last
 	// apply found them; under mu

@@ -151,6 +151,7 @@ func (s *Server) alerts(pools []PoolInfo) ([]Alert, error) {
 	}
 	s.hmu.Unlock()
 	a := ComputeAlerts(AlertInput{Pools: pools, Disks: s.withSmart(disks), ApplyErrs: applyErrs, SnapFails: fails})
+	a = append(a, s.backupAlerts()...)
 	s.hmu.Lock()
 	stampAlerts(a, s.alertSince, s.now())
 	s.hmu.Unlock()

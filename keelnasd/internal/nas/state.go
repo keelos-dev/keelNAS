@@ -104,6 +104,9 @@ type State struct {
 	Network  *Network        `json:"network,omitempty"` // the LAN NIC (network.go); nil = DHCP
 	// Directory: connected to keelAuth, its users and groups (directory.go); nil = not connected
 	Directory *Directory `json:"directory,omitempty"`
+	// Backups: the systems whose backups keelNAS fetches (backuppull.go, docs/08)
+	Backups    []BackupSource `json:"backups,omitempty"`
+	BackupKeep *BackupKeep    `json:"backup_keep,omitempty"` // nil = DefaultBackupKeep
 }
 
 // Fresh: nothing set up yet (no pools, users, shares or LUNs). Only then may settings be restored.
@@ -194,6 +197,11 @@ func (s *State) Clone() *State {
 		c.Network = &n
 	}
 	c.Directory = s.Directory.clone()
+	c.Backups = slices.Clone(s.Backups)
+	if s.BackupKeep != nil {
+		k := *s.BackupKeep
+		c.BackupKeep = &k
+	}
 	c.normalize()
 	return &c
 }
