@@ -498,6 +498,7 @@ type ZLabel struct {
 	GUID     string
 	State    string // 0 active, 1 exported, 2 destroyed, 3 spare, 4 cache
 	Hostname string
+	Hostid   string // decimal, as kern.hostid; "" when the label has none
 }
 
 // ParseZdbLabel reads `zdb -l DEV`. ok is false when the output is neither a label nor the
@@ -521,6 +522,8 @@ func ParseZdbLabel(out string) (l ZLabel, ok bool) {
 				l.State = v
 			case k == "hostname" && l.Hostname == "":
 				l.Hostname = v
+			case k == "hostid" && l.Hostid == "":
+				l.Hostid = v
 			}
 		}
 		return l, true

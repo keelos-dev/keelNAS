@@ -201,6 +201,12 @@ func (s *Server) importablePools() ([]ImportablePool, error) {
 	for _, n := range s.importedPools() {
 		taken[n] = true
 	}
+	// zpool import -D does not say that a destroyed pool was last used by another system (it
+	// only refuses the import then): the label's host id against ours tells
+	ours := ""
+	if o, err := s.Sys.Run("", "sysctl", "-n", "kern.hostid"); err == nil {
+		ours = strings.TrimSpace(o)
+	}
 	res := []ImportablePool{}
 	for _, p := range pools {
 		ip := ImportablePool{Name: p.Name, ID: p.GUID, State: p.State, Status: p.Status, Action: p.Action,
@@ -217,6 +223,9 @@ func (s *Server) importablePools() ([]ImportablePool, error) {
 				lo, _ := s.Sys.Run("", "zdb", "-l", "/dev/"+strings.TrimPrefix(dv.Path, "/dev/"))
 				if l, ok := ParseZdbLabel(lo); ok && l.Found {
 					ip.LastHost = l.Hostname
+					if p.Destroyed && ours != "" && l.Hostid != "" && l.Hostid != ours {
+						ip.OtherHost = true
+					}
 				}
 			}
 			ip.Disks = append(ip.Disks, x)
@@ -306,6 +315,14 @@ func (s *Server) postImport(r *http.Request) (any, error) {
 		args = append(args, name)
 	}
 	_, ierr := s.run("", "zpool", args...)
+	if _, ok := s.importedPools()[id]; !ok && ierr != nil && !p.OtherHost && strings.Contains(ierr.Error(), "another system") {
+		if !req.Force {
+			return nil, conflict("pool %s was last used by another system: import it only when that system no longer uses these disks, and confirm with force", p.Name)
+		}
+		// asked with force, but the list did not know: once more with -f
+		args = append([]string{"import", "-f"}, args[1:]...)
+		_, ierr = s.run("", "zpool", args...)
+	}
 	if _, ok := s.importedPools()[id]; !ok {
 		if ierr == nil {
 			ierr = errors.New("zpool import said nothing, but the pool is not imported")

@@ -349,10 +349,19 @@ func TestImportForeignPool(t *testing.T) {
 // its disks say destroyed (never free), and importing it recovers it with -D.
 func TestImportDestroyedPool(t *testing.T) {
 	w, f := hbaWorld(t)
+	// as zpool import -D prints it: no word about the other system, only the label's host id tells
 	destroyed := strings.Replace(w.importOut, "state: ONLINE", "state: ONLINE (DESTROYED)", 1)
+	destroyed = strings.Replace(destroyed, "status: The pool was last accessed by another system.\n", "", 1)
+	destroyed = strings.Replace(destroyed, " and\n\tthe '-f' flag.", ".", 1)
+	if strings.Contains(destroyed, "another system") || strings.Contains(destroyed, "'-f'") {
+		t.Fatalf("test data still names the other system:\n%s", destroyed)
+	}
 	w.importOut = ""
 	inner := w.extra
 	w.extra = func(line string, a []string) (string, error, bool) {
+		if line == "sysctl -n kern.hostid" {
+			return "42\n", nil, true
+		}
 		if line == "zpool import -D" {
 			if _, ok := w.pools[tankID]; ok {
 				return "", nil, true
@@ -376,8 +385,12 @@ func TestImportDestroyedPool(t *testing.T) {
 	}
 	_, m = do(t, ts, "GET", "/v1/importable", "")
 	ps := m["pools"].([]any)
-	if len(ps) != 1 || ps[0].(map[string]any)["destroyed"] != true || ps[0].(map[string]any)["id"] != tankID {
+	if len(ps) != 1 || ps[0].(map[string]any)["destroyed"] != true || ps[0].(map[string]any)["id"] != tankID ||
+		ps[0].(map[string]any)["other_host"] != true || ps[0].(map[string]any)["last_host"] != "oldnas" {
 		t.Fatalf("importable %v", m)
+	}
+	if c, _ := do(t, ts, "POST", "/v1/importable/"+tankID+"/import", `{}`); c != 409 {
+		t.Errorf("destroyed pool of another system without force: %d", c)
 	}
 	f.Reset()
 	if c, m := do(t, ts, "POST", "/v1/importable/"+tankID+"/import", `{"force":true,"name":"old"}`); c != 200 || m["altroot"] != "/pools/old" {
