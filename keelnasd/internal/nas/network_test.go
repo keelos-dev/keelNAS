@@ -120,3 +120,40 @@ func TestApplyNetwork(t *testing.T) {
 		t.Errorf("dhcp running: %v", f.Calls)
 	}
 }
+
+// keel's data link (seed "data", keelOS docs/90 §10.6): MTU and address on its NIC, no DHCP;
+// it is never the LAN NIC, even when it comes first.
+func TestApplyData(t *testing.T) {
+	f := sys.NewFake()
+	f.Handle = func(line, _ string) (string, error, bool) {
+		if line == "ifconfig -a" {
+			return ifconfigOut, nil, true
+		}
+		return "", nil, false
+	}
+	s, err := NewServer(f, StatePath, "test", log.New(io.Discard, "", 0))
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.seed = &Seed{Data: &SeedData{MAC: "58:9C:FC:00:11:22", Address: "169.254.78.2/30", MTU: 9000}}
+	f.Calls = nil
+	s.ApplyData()
+	for _, want := range []string{"service dhclient stop vtnet0", "ifconfig vtnet0 mtu 9000", "ifconfig vtnet0 inet 169.254.78.2/30 up"} {
+		if !f.Ran(want) {
+			t.Errorf("no %q in %v", want, f.Calls)
+		}
+	}
+	if f.Ran("ifconfig vtnet1") {
+		t.Errorf("touched another NIC: %v", f.Calls)
+	}
+	if l := lan(s.ifaces()); l == nil || l.Name != "vtnet1" {
+		t.Errorf("lan = %+v, want vtnet1 (vtnet0 is the data link)", l)
+	}
+	// no data in the seed: nothing happens
+	s.seed = &Seed{}
+	f.Calls = nil
+	s.ApplyData()
+	if len(f.Calls) != 0 {
+		t.Errorf("without data: %v", f.Calls)
+	}
+}

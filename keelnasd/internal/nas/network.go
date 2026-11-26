@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -35,6 +36,7 @@ type Iface struct {
 	Link     bool     `json:"link"`
 	Address  []string `json:"addresses"` // IPv4 with prefix length
 	Internal bool     `json:"internal,omitempty"`
+	Data     bool     `json:"data,omitempty"` // keel's data link (seed "data")
 }
 
 var (
@@ -86,9 +88,10 @@ func (s *Server) ifaces() []Iface {
 		return nil
 	}
 	is := parseIfconfig(out)
-	in := s.internalMAC()
+	in, dm := s.internalMAC(), s.dataMAC()
 	for k := range is {
 		is[k].Internal = in != "" && is[k].MAC == in
+		is[k].Data = dm != "" && is[k].MAC == dm
 	}
 	return is
 }
@@ -103,10 +106,20 @@ func (s *Server) internalMAC() string {
 	return s.seed.Internal.MAC
 }
 
-// lan is the LAN interface: the first Ethernet interface that is not the internal one.
+// dataMAC is the data link NIC's MAC from the seed ("" = none).
+func (s *Server) dataMAC() string {
+	s.hmu.Lock()
+	defer s.hmu.Unlock()
+	if s.seed == nil || s.seed.Data == nil {
+		return ""
+	}
+	return strings.ToLower(s.seed.Data.MAC)
+}
+
+// lan is the LAN interface: the first Ethernet interface that is not one of keel's links.
 func lan(is []Iface) *Iface {
 	for k := range is {
-		if !is[k].Internal {
+		if !is[k].Internal && !is[k].Data {
 			return &is[k]
 		}
 	}
@@ -134,6 +147,34 @@ func (s *Server) ApplyInternal() {
 		return
 	}
 	s.Log.Printf("internal NIC: no interface with MAC %s", sd.Internal.MAC)
+}
+
+// ApplyData sets keel's data link from the seed: its MTU and address; no DHCP there.
+func (s *Server) ApplyData() {
+	s.hmu.Lock()
+	sd := s.seed
+	s.hmu.Unlock()
+	if sd == nil || sd.Data == nil {
+		return
+	}
+	for _, i := range s.ifaces() {
+		if !i.Data {
+			continue
+		}
+		s.Sys.Run("", "service", "dhclient", "stop", i.Name)
+		if sd.Data.MTU > 0 {
+			if _, err := s.Sys.Run("", "ifconfig", i.Name, "mtu", strconv.Itoa(sd.Data.MTU)); err != nil {
+				s.Log.Printf("data NIC %s: mtu %d: %v", i.Name, sd.Data.MTU, err)
+			}
+		}
+		if _, err := s.Sys.Run("", "ifconfig", i.Name, "inet", sd.Data.Address, "up"); err != nil {
+			s.Log.Printf("data NIC %s: %v", i.Name, err)
+			return
+		}
+		s.Log.Printf("data NIC %s: %s mtu %d", i.Name, sd.Data.Address, sd.Data.MTU)
+		return
+	}
+	s.Log.Printf("data NIC: no interface with MAC %s", sd.Data.MAC)
 }
 
 // ApplyNetwork sets the LAN interface from state.json's "network".
@@ -228,8 +269,9 @@ type NetworkView struct {
 	Settings Network  `json:"settings"`
 	LAN      *Iface   `json:"lan"`
 	Internal *Iface   `json:"internal"`
-	Gateway  string   `json:"gateway"` // the default route now
-	DNS      []string `json:"dns"`     // resolv.conf now
+	Data     *Iface   `json:"data,omitempty"` // keel's data link
+	Gateway  string   `json:"gateway"`        // the default route now
+	DNS      []string `json:"dns"`            // resolv.conf now
 	Hostname string   `json:"hostname"`
 }
 
@@ -243,6 +285,9 @@ func (s *Server) getNetwork(r *http.Request) (any, error) {
 	for k := range is {
 		if is[k].Internal {
 			v.Internal = &is[k]
+		}
+		if is[k].Data {
+			v.Data = &is[k]
 		}
 	}
 	if out, err := s.Sys.Run("", "route", "-n", "get", "default"); err == nil {

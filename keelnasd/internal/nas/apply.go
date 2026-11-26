@@ -50,6 +50,8 @@ type Server struct {
 
 	scrubs ScrubWatch // the checks as they run and the past ones (scrubperf.go)
 
+	auditSeen map[string]time.Time // audit.go: the last minute's records, against repeats (the tick's)
+
 	hmu          sync.Mutex // the fields below
 	restoredFrom string
 	smart        map[string]SmartInfo
@@ -217,6 +219,15 @@ func (s *Server) applyLocked() []string {
 			fail("lun %s: %v", l.Name, err)
 		}
 	}
+	for _, v := range st.KeelVols {
+		if !poolUp[v.Pool] {
+			fail("keel volume %s: pool %s is not imported", v.Name, v.Pool)
+			continue
+		}
+		if err := s.ensureKeelVol(st, v, ds); err != nil {
+			fail("keel volume %s: %v", v.Name, err)
+		}
+	}
 
 	// 4. Configuration files.
 	if _, err := s.Sys.Run("", "install", "-d", "-m", "0700", SambaDir); err != nil {
@@ -224,11 +235,15 @@ func (s *Server) applyLocked() []string {
 	}
 	smbChanged := false
 	if dsErr == nil { // without the datasets every share would look unmounted: keep the old file
+		// syslogd first, so that a share's first access records have somewhere to go
+		if err := s.ensureAuditSyslog(st); err != nil {
+			fail("access records: %v", err)
+		}
 		if smbChanged, err = s.writeIfChanged(SmbConf, SmbConfig(st, places, guests), 0o644); err != nil {
 			fail("%s: %v", SmbConf, err)
 		}
 	}
-	ctlChanged, err := s.writeIfChanged(CtlConf, CtlConfig(st, s.hostname()), 0o600)
+	ctlChanged, err := s.writeIfChanged(CtlConf, CtlConfig(st, s.hostname())+ctlKeel(st, st.KeelVols, s.dataAddr()), 0o600)
 	if err != nil {
 		fail("%s: %v", CtlConf, err)
 	}
@@ -422,14 +437,47 @@ func (s *Server) ensureLUN(l LUN, ds map[string]Dataset) error {
 		return err
 	}
 	name := LUNDataset(l)
-	if _, ok := ds[name]; ok {
-		return nil
-	}
-	_, err := s.run("", "zfs", "create", "-V", strconv.Itoa(l.SizeGiB)+"G", "-o", "volmode=dev", name)
-	if err == nil {
+	if _, ok := ds[name]; !ok {
+		if _, err := s.run("", "zfs", "create", "-V", strconv.Itoa(l.SizeGiB)+"G", "-o", "volmode=dev", name); err != nil {
+			return err
+		}
 		ds[name] = Dataset{Name: name, Type: "volume"}
 	}
-	return err
+	return s.ensureZvolNode(name)
+}
+
+// ZvolDefaultDev makes "dev" the kernel's default volmode (vfs.zfs.vol.mode=2; FreeBSD's is
+// geom). keelNAS only ever hands zvols to CTL, which wants the plain device. With the geom
+// default a zvol made with -o volmode=dev first gets its GEOM node (the property lands a
+// transaction group after the create), and the switch to dev then fails without a word:
+// the GEOM node's /dev entry is removed later, so the new one meets its own name
+// (.240, 2026-11-25: 0 of 6 zvols got a node; with the default at dev 6 of 6. keelOS
+// docs/09 "zvol 没有 /dev/zvol 节点"). Called before any pool is imported.
+func (s *Server) ZvolDefaultDev() {
+	if _, err := s.Sys.Run("", "sysctl", "vfs.zfs.vol.mode=2"); err != nil {
+		s.Log.Printf("zvol default mode: %v", err)
+	}
+}
+
+// ensureZvolNode: the zvol has its /dev/zvol node, else volmode=dev is set once more, which
+// makes it (the repair for a zvol caught by the switch described at ZvolDefaultDev).
+func (s *Server) ensureZvolNode(name string) error {
+	node := "/dev/zvol/" + name
+	if _, err := s.Sys.Run("", "test", "-c", node); err == nil {
+		return nil
+	}
+	s.Log.Printf("%s is missing: setting volmode=dev again", node)
+	if _, err := s.run("", "zfs", "set", "volmode=dev", name); err != nil {
+		return err
+	}
+	var err error
+	for i := 0; i < 20; i++ { // the node is made by a kernel task after the command returns
+		if _, err = s.Sys.Run("", "test", "-c", node); err == nil {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	return fmt.Errorf("%s: no device node for the zvol", node)
 }
 
 // writeIfChanged writes a generated file and reports whether its content changed.

@@ -345,6 +345,52 @@ func TestImportForeignPool(t *testing.T) {
 	}
 }
 
+// TestImportDestroyedPool: a pool that zpool destroy removed is listed by zpool import -D;
+// its disks say destroyed (never free), and importing it recovers it with -D.
+func TestImportDestroyedPool(t *testing.T) {
+	w, f := hbaWorld(t)
+	destroyed := strings.Replace(w.importOut, "state: ONLINE", "state: ONLINE (DESTROYED)", 1)
+	w.importOut = ""
+	inner := w.extra
+	w.extra = func(line string, a []string) (string, error, bool) {
+		if line == "zpool import -D" {
+			if _, ok := w.pools[tankID]; ok {
+				return "", nil, true
+			}
+			return destroyed, nil, true
+		}
+		if strings.HasPrefix(line, "zpool import ") && strings.Contains(line, tankID) && !strings.Contains(line, " -D ") {
+			t.Errorf("destroyed pool imported without -D: %s", line)
+			return "cannot import: no such pool available", sys.ErrFail, true
+		}
+		return inner(line, a)
+	}
+	_, ts := serverOn(t, f)
+
+	_, m := do(t, ts, "GET", "/v1/disks", "")
+	for _, d := range m["disks"].([]any) {
+		d := d.(map[string]any)
+		if strings.HasPrefix(d["name"].(string), "da") && (d["pool"] != "tank" || d["pool_state"] != "destroyed" || d["free"] != false) {
+			t.Errorf("%v", d)
+		}
+	}
+	_, m = do(t, ts, "GET", "/v1/importable", "")
+	ps := m["pools"].([]any)
+	if len(ps) != 1 || ps[0].(map[string]any)["destroyed"] != true || ps[0].(map[string]any)["id"] != tankID {
+		t.Fatalf("importable %v", m)
+	}
+	f.Reset()
+	if c, m := do(t, ts, "POST", "/v1/importable/"+tankID+"/import", `{"force":true,"name":"old"}`); c != 200 || m["altroot"] != "/pools/old" {
+		t.Fatalf("import: %d %v", c, m)
+	}
+	if !f.Ran("zpool import -D -f -R /pools/old " + tankID + " old") {
+		t.Errorf("import: %v", f.Calls)
+	}
+	if _, m = do(t, ts, "GET", "/v1/importable", ""); len(m["pools"].([]any)) != 0 {
+		t.Errorf("still importable: %v", m)
+	}
+}
+
 // serverOn is newTestServer on a given fake.
 func serverOn(t *testing.T, f *sys.Fake) (*Server, *httptest.Server) {
 	t.Helper()

@@ -138,7 +138,7 @@ background_dhclient="YES"   # the boot does not wait for the LAN's DHCP: keel's 
 zfs_enable="YES"
 sshd_enable="YES"
 sendmail_enable="NONE"
-syslogd_flags="-ss"
+syslogd_flags="-8 -ss"   # -8: file names in the access records stay UTF-8 (docs/04 section 18), not M-x escapes
 dumpdev="NO"
 clear_tmp_enable="YES"
 EOF

@@ -166,6 +166,17 @@ const words = {
   "nas.rw": "Read and write",
   "nas.ro": "Read only",
   "nas.noaccess": "No access",
+  "nas.acc.who": "Users and groups with access",
+  "nas.acc.none": "Nobody yet: add a user or a group below.",
+  "nas.acc.adduser": "Add a user…",
+  "nas.acc.addgroup": "Add a group…",
+  "nas.acc.remove": "Remove",
+  "nas.acc.gone": "{0} (no longer exists)",
+  "nas.imp.destroyed": "destroyed",
+  "nas.imp.recover": "Recover",
+  "nas.imp.recovertitle": "Recover pool {0}",
+  "nas.imp.recovergo": "Recover the pool",
+  "nas.imp.recovernote": "This pool was destroyed (zpool destroy), but its data is still on the disks as long as nothing has written on them. Recovering imports it again as it was when it was destroyed.",
   "nas.manager": "Manager",
   "nas.managernote": "A manager has full control of everything in the share, in every folder whatever its list says, and may change permissions in Windows (Properties, Security).",
   "nas.rootmanagers": "Only managers make, rename or delete folders in the share's root",
@@ -196,6 +207,33 @@ const words = {
   "nas.newshare": "New share",
   "nas.sharename": "Name",
   "nas.addshare": "Make the share",
+  "nas.audit": "Access records",
+  "nas.auditof": "Access records of {0}",
+  "nas.audit.on": "Record who opens, changes, renames and deletes files (access records)",
+  "nas.audit.note": "Records are kept on the share's storage for 365 days. Only looking at a folder is not recorded; opening the same file again within a minute counts once.",
+  "nas.audit.badge": "recorded",
+  "nas.audit.off": "Access records are off for this share: turn them on with Edit. Older records are still shown.",
+  "nas.audit.from": "From",
+  "nas.audit.to": "To",
+  "nas.audit.user": "User",
+  "nas.audit.act": "Action",
+  "nas.audit.q": "Path contains",
+  "nas.audit.all": "All",
+  "nas.audit.search": "Search",
+  "nas.audit.none": "No records.",
+  "nas.audit.more": "Only the newest {0} are shown: narrow the search.",
+  "nas.audit.time": "Time",
+  "nas.audit.ip": "Computer",
+  "nas.audit.path": "File",
+  "nas.audit.a.connect": "Connected",
+  "nas.audit.a.read": "Opened",
+  "nas.audit.a.write": "Changed",
+  "nas.audit.a.create": "Created",
+  "nas.audit.a.rename": "Renamed",
+  "nas.audit.a.delete": "Deleted",
+  "nas.audit.a.mkdir": "New folder",
+  "nas.audit.a.denied": "Refused",
+  "nas.audit.utc": "Dates are UTC days; times are shown in this browser's time zone.",
   "nas.sharenote": "Every share needs a user and a password: Windows refuses shares that are open to everybody.",
   "nas.sharesneed": "A share needs a storage and a user first.",
   "nas.delshareq": "Remove the share {0}? Its files stay on the storage.",
@@ -547,6 +585,17 @@ const words = {
   "nas.rw": "可读写",
   "nas.ro": "只读",
   "nas.noaccess": "不能访问",
+  "nas.acc.who": "有权限的用户和组",
+  "nas.acc.none": "还没有人：在下面添加用户或组。",
+  "nas.acc.adduser": "添加用户…",
+  "nas.acc.addgroup": "添加组…",
+  "nas.acc.remove": "移除",
+  "nas.acc.gone": "{0}（已不存在）",
+  "nas.imp.destroyed": "已销毁",
+  "nas.imp.recover": "恢复",
+  "nas.imp.recovertitle": "恢复池 {0}",
+  "nas.imp.recovergo": "恢复这个池",
+  "nas.imp.recovernote": "这个池被销毁了（zpool destroy），但只要磁盘没被写过，数据还在。恢复会把它按销毁时的样子重新导入。",
   "nas.manager": "管理",
   "nas.managernote": "管理的人对共享里的一切有完全控制，每个文件夹都进得去（不管它的名单怎么写），也能在 Windows 的“属性 → 安全”里改权限。",
   "nas.rootmanagers": "只有管理的人能在共享的根目录新建、改名、删除文件夹",
@@ -577,6 +626,33 @@ const words = {
   "nas.newshare": "新建共享",
   "nas.sharename": "名字",
   "nas.addshare": "建立共享",
+  "nas.audit": "访问记录",
+  "nas.auditof": "{0} 的访问记录",
+  "nas.audit.on": "记录谁打开、修改、改名、删除了哪些文件（访问记录）",
+  "nas.audit.note": "记录保存在这个共享所在的存储上，保留 365 天。只是浏览文件夹不记录；一分钟内重复打开同一个文件只记一次。",
+  "nas.audit.badge": "记录中",
+  "nas.audit.off": "这个共享没有开访问记录：在「编辑」里打开。以前的记录仍然显示。",
+  "nas.audit.from": "从",
+  "nas.audit.to": "到",
+  "nas.audit.user": "用户",
+  "nas.audit.act": "操作",
+  "nas.audit.q": "路径包含",
+  "nas.audit.all": "全部",
+  "nas.audit.search": "查询",
+  "nas.audit.none": "没有记录。",
+  "nas.audit.more": "只显示最新的 {0} 条：请缩小查询范围。",
+  "nas.audit.time": "时间",
+  "nas.audit.ip": "电脑",
+  "nas.audit.path": "文件",
+  "nas.audit.a.connect": "连接",
+  "nas.audit.a.read": "打开",
+  "nas.audit.a.write": "修改",
+  "nas.audit.a.create": "新建",
+  "nas.audit.a.rename": "改名",
+  "nas.audit.a.delete": "删除",
+  "nas.audit.a.mkdir": "新建文件夹",
+  "nas.audit.a.denied": "被拒绝",
+  "nas.audit.utc": "日期按 UTC 计；时间按这个浏览器的时区显示。",
   "nas.sharenote": "每个共享都要用户名和密码：Windows 不接受对所有人开放的共享。",
   "nas.sharesneed": "建共享之前先要有一个存储和一个用户。",
   "nas.delshareq": "去掉共享 {0}？里面的文件留在存储上。",
@@ -928,6 +1004,17 @@ const words = {
   "nas.rw": "読み書き",
   "nas.ro": "読み取り専用",
   "nas.noaccess": "アクセス不可",
+  "nas.acc.who": "アクセスできるユーザーとグループ",
+  "nas.acc.none": "まだ誰もいません：下でユーザーかグループを追加してください。",
+  "nas.acc.adduser": "ユーザーを追加…",
+  "nas.acc.addgroup": "グループを追加…",
+  "nas.acc.remove": "削除",
+  "nas.acc.gone": "{0}（存在しません）",
+  "nas.imp.destroyed": "破棄済み",
+  "nas.imp.recover": "復旧",
+  "nas.imp.recovertitle": "プール {0} の復旧",
+  "nas.imp.recovergo": "プールを復旧",
+  "nas.imp.recovernote": "このプールは破棄されました（zpool destroy）が、ディスクに書き込みがなければデータは残っています。復旧すると、破棄した時点の状態で再びインポートします。",
   "nas.manager": "管理者",
   "nas.managernote": "管理者は共有内のすべてをフルコントロールでき、リストに関係なくどのフォルダーにも入れます。Windows の「プロパティ → セキュリティ」でアクセス許可も変更できます。",
   "nas.rootmanagers": "共有のルートでフォルダーを作成・名前変更・削除できるのは管理者だけにする",
@@ -958,6 +1045,33 @@ const words = {
   "nas.newshare": "共有を作成",
   "nas.sharename": "名前",
   "nas.addshare": "共有を作成",
+  "nas.audit": "アクセス記録",
+  "nas.auditof": "{0} のアクセス記録",
+  "nas.audit.on": "誰がどのファイルを開いた・変更した・名前変更した・削除したかを記録する（アクセス記録）",
+  "nas.audit.note": "記録はこの共有のストレージに 365 日保存されます。フォルダーを見ただけでは記録しません。1 分以内に同じファイルを開き直しても 1 回と数えます。",
+  "nas.audit.badge": "記録中",
+  "nas.audit.off": "この共有はアクセス記録がオフです（「編集」でオン）。以前の記録は表示されます。",
+  "nas.audit.from": "開始",
+  "nas.audit.to": "終了",
+  "nas.audit.user": "ユーザー",
+  "nas.audit.act": "操作",
+  "nas.audit.q": "パスに含む",
+  "nas.audit.all": "すべて",
+  "nas.audit.search": "検索",
+  "nas.audit.none": "記録はありません。",
+  "nas.audit.more": "新しい {0} 件だけ表示しています。条件を絞ってください。",
+  "nas.audit.time": "日時",
+  "nas.audit.ip": "コンピューター",
+  "nas.audit.path": "ファイル",
+  "nas.audit.a.connect": "接続",
+  "nas.audit.a.read": "開いた",
+  "nas.audit.a.write": "変更",
+  "nas.audit.a.create": "作成",
+  "nas.audit.a.rename": "名前変更",
+  "nas.audit.a.delete": "削除",
+  "nas.audit.a.mkdir": "フォルダー作成",
+  "nas.audit.a.denied": "拒否",
+  "nas.audit.utc": "日付は UTC の日、時刻はこのブラウザーのタイムゾーンで表示します。",
   "nas.sharenote": "共有にはユーザー名とパスワードが必要です。Windows は誰でも開ける共有を拒否します。",
   "nas.sharesneed": "共有を作る前に、ストレージとユーザーが必要です。",
   "nas.delshareq": "共有 {0} を外しますか？ファイルはストレージに残ります。",
@@ -1261,9 +1375,11 @@ function ImportPool({ pool, onClose, onDone }) {
     if (r && r.warning) toast(r.warning, 10000);
     onDone();
   };
-  return html`<${FormDialog} title=${t("nas.imp.title", pool.name)} submit=${t("nas.imp.go")} disabled=${bad} onSubmit=${go} onClose=${onClose}>
+  const rec = !!pool.destroyed;
+  return html`<${FormDialog} title=${t(rec ? "nas.imp.recovertitle" : "nas.imp.title", pool.name)} submit=${t(rec ? "nas.imp.recovergo" : "nas.imp.go")} disabled=${bad} onSubmit=${go} onClose=${onClose}>
+    ${rec && html`<p class="warn small">${t("nas.imp.recovernote")}</p>`}
     <p>${t("nas.imp.note", "/pools/" + (name || pool.name))}</p>
-    ${pool.state !== "ONLINE" && html`<p class="warn small">${pool.state}: ${pool.status} ${pool.action}</p>`}
+    ${pool.state.replace(" (DESTROYED)", "") !== "ONLINE" && html`<p class="warn small">${pool.state}: ${pool.status} ${pool.action}</p>`}
     ${pool.name_taken && html`<p class="warn small">${t("nas.imp.taken", pool.name)}</p>`}
     ${(pool.name_taken || name !== pool.name) && html`<label>${t("nas.imp.name")}<input value=${name} pattern=${namePattern} onInput=${(e) => setName(e.target.value)} /></label>`}
     ${pool.other_host && html`<label class="check"><input type="checkbox" checked=${sure} onChange=${(e) => setSure(e.target.checked)} /> ${t("nas.imp.otherhost", pool.last_host || "?")}</label>`}
@@ -1532,10 +1648,10 @@ function Storage({ admin, onChange }) {
     ${imp.length > 0 && html`<h3>${t("nas.imp.found")}</h3>
       <p class="muted small">${t("nas.imp.what")}</p>
       ${imp.map((p) => html`<div class="stack" style="margin-bottom:14px">
-        <div><b>${p.name}</b> <span class=${"badge" + (p.state === "ONLINE" ? " ok" : "")}>${p.state}</span>
+        <div><b>${p.name}</b> <span class=${"badge" + (p.state.replace(" (DESTROYED)", "") === "ONLINE" ? " ok" : "")}>${p.state.replace(" (DESTROYED)", "")}</span>${p.destroyed ? html` <span class="badge">${t("nas.imp.destroyed")}</span>` : null}
           <span class="muted small"> ${p.layout} · ${t("nas.imp.disks", (p.disks || []).length)} · ${gib(p.size)} ${t("nas.imp.raw")}</span>
           ${p.other_host && html` <span class="warn small">${t("nas.imp.lastby", p.last_host || "?")}</span>`}
-          ${admin && html` <button class="btn" onClick=${() => setDlg({ kind: "import", pool: p })}>${t("nas.imp.btn")}</button>`}</div>
+          ${admin && html` <button class="btn" onClick=${() => setDlg({ kind: "import", pool: p })}>${t(p.destroyed ? "nas.imp.recover" : "nas.imp.btn")}</button>`}</div>
         <div class="small muted">${(p.disks || []).map((d, j) => html`${j ? ", " : ""}${d.name || d.device}${d.state !== "ONLINE" ? " (" + d.state + ")" : ""}`)}</div>
       </div>`)}`}
     ${busy.length > 0 && html`<h3>${t("nas.disk.busy")}</h3>
@@ -1663,16 +1779,38 @@ const bytes = (n) => {
   return (i ? n.toFixed(1) : String(n)) + " " + u[i];
 };
 
-// Access: each user of a share: read and write, read only, or none. onChange gets an updater
-// (a => new value), so changes that come quickly one after another all count. users: {name, label}: local
-// users, keelAuth's users and its groups ("@office"), from accessList.
+// Access: who may use a share or folder, laid out like Windows' security tab: the list of
+// users and groups that have access, each with its permission and a × to remove it, and below
+// it one picker for users and one for groups (user 2026-11-26). onChange gets an updater
+// (a => new value), so changes that come quickly one after another all count. users: {name,
+// label}: local users, keelAuth's users and its groups ("@office"), from accessList.
 // manager: a share's list also offers "manager" (keelNAS docs/07); a folder's does not.
+// Someone added gets read and write: a share is made to be written to.
 function Access({ users, value, onChange, manager }) {
-  return users.map((u) => html`<label>${u.label || u.name}
-    <select value=${value[u.name] || ""} onChange=${(e) => { const v = e.target.value; onChange((a) => ({ ...a, [u.name]: v })); }}>
-      <option value="">${t("nas.noaccess")}</option><option value="rw">${t("nas.rw")}</option><option value="ro">${t("nas.ro")}</option>
-      ${manager && html`<option value="mg">${t("nas.manager")}</option>`}
-    </select></label>`);
+  const byName = Object.fromEntries(users.map((u) => [u.name, u]));
+  const isGroup = (n) => n.startsWith("@");
+  const have = Object.keys(value).filter((n) => value[n]);
+  // groups first, then people, each in the order of users; names that no longer exist last
+  const order = new Map(users.map((u, i) => [u.name, i]));
+  have.sort((a, b) => (order.has(a) ? order.get(a) : 1e9) - (order.has(b) ? order.get(b) : 1e9) || a.localeCompare(b));
+  const label = (n) => (byName[n] ? byName[n].label || n : t("nas.acc.gone", isGroup(n) ? n.slice(1) : n));
+  const set = (n, v) => onChange((a) => ({ ...a, [n]: v }));
+  const left = users.filter((u) => !value[u.name]);
+  const picker = (list, title) => list.length > 0 && html`<select value="" onChange=${(e) => { const n = e.target.value; e.target.value = ""; if (n) set(n, "rw"); }}>
+      <option value="">${title}</option>${list.map((u) => html`<option value=${u.name}>${u.label || u.name}</option>`)}</select>`;
+  return html`<div style="display:flex;flex-direction:column;gap:8px">
+    <b class="small">${t("nas.acc.who")}</b>
+    ${have.length === 0 ? html`<p class="muted small">${t("nas.acc.none")}</p>` : html`<div class="table-wrap"><table class="data plain"><tbody>
+      ${have.map((n) => html`<tr>
+        <td style="vertical-align:middle" class=${byName[n] ? "" : "muted"}>${label(n)}</td>
+        <td style="width:1%;white-space:nowrap;vertical-align:middle"><select value=${value[n]} onChange=${(e) => set(n, e.target.value)}>
+          <option value="rw">${t("nas.rw")}</option><option value="ro">${t("nas.ro")}</option>
+          ${manager && html`<option value="mg">${t("nas.manager")}</option>`}</select></td>
+        <td style="width:1%;vertical-align:middle"><button type="button" class="btn small" title=${t("nas.acc.remove")} aria-label=${t("nas.acc.remove")} onClick=${() => set(n, "")}>×</button></td>
+      </tr>`)}</tbody></table></div>`}
+    ${picker(left.filter((u) => !isGroup(u.name)), t("nas.acc.adduser"))}
+    ${picker(left.filter((u) => isGroup(u.name)), t("nas.acc.addgroup"))}
+  </div>`;
 }
 const split = (acc) => ({ rw: Object.keys(acc).filter((u) => acc[u] === "rw"), ro: Object.keys(acc).filter((u) => acc[u] === "ro") });
 const mgrs = (acc) => Object.keys(acc).filter((u) => acc[u] === "mg");
@@ -1701,8 +1839,9 @@ function ShareForm({ share, dataset, shares, users, pools, onClose, onDone }) {
   const [pool, setPool] = useState(pools.length ? pools[0].name : "");
   const [acc, setAcc] = useState(share ? join(share) : {});
   const [rootM, setRootM] = useState(!!(share && share.root_managers));
+  const [audit, setAudit] = useState(!!(share && share.audit));
   const save = async () => {
-    const who = { ...split(acc), managers: mgrs(acc), root_managers: rootM && mgrs(acc).length > 0 };
+    const who = { ...split(acc), managers: mgrs(acc), root_managers: rootM && mgrs(acc).length > 0, audit };
     if (share) await api("PUT", NB + "/shares/" + enc(share.name), who);
     else if (dataset) await api("POST", NB + "/shares", { dataset: dataset.name, name: name.trim(), ...who });
     else await api("POST", NB + "/shares", { name: name.trim(), pool, ...who });
@@ -1716,6 +1855,8 @@ function ShareForm({ share, dataset, shares, users, pools, onClose, onDone }) {
     <${Access} users=${users} value=${acc} onChange=${setAcc} manager=${true} />
     ${mgrs(acc).length > 0 && html`<label class="check"><input type="checkbox" checked=${rootM} onChange=${(e) => setRootM(e.target.checked)} /> ${t("nas.rootmanagers")}</label>
       <p class="muted small">${t("nas.managernote")}</p>`}
+    <label class="check"><input type="checkbox" checked=${audit} onChange=${(e) => setAudit(e.target.checked)} /> ${t("nas.audit.on")}</label>
+    ${audit && html`<p class="muted small">${t("nas.audit.note")}</p>`}
     <p class="muted small">${t("nas.sharenote")}</p>
   <//>`;
 }
@@ -1799,6 +1940,47 @@ function Snapshots({ share, admin, onClose }) {
     ${admin && html`<div class="actions"><button type="button" class="primary" onClick=${take}>${t("nas.snapnow")}</button></div>`}</div><//>`;
 }
 
+// AuditView: a share's access records (keelNAS docs/04 section 18), newest first, with filters.
+function AuditView({ share, users, onClose }) {
+  const today = new Date();
+  const [f, setF] = useState({ from: isoDay(new Date(today.getTime() - 6 * 864e5)), to: isoDay(today), user: "", act: "", q: "" });
+  const [res, setRes] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const load = async (x) => {
+    setBusy(true);
+    const p = new URLSearchParams({ share: share.name, from: x.from, to: x.to, limit: "1000" });
+    if (x.user) p.set("user", x.user);
+    if (x.act) p.set("act", x.act);
+    if (x.q.trim()) p.set("q", x.q.trim());
+    try { setRes(await api("GET", NB + "/audit?" + p.toString())); } catch (e) { fail(e); } finally { setBusy(false); }
+  };
+  useEffect(() => { load(f); }, []);
+  const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  const acts = ["read", "write", "create", "rename", "delete", "mkdir", "denied", "connect"];
+  const who = (users || []).map((u) => u.name).filter((n) => n && !n.startsWith("@")).sort();
+  const rows = (res && res.records) || [];
+  return html`<${Dialog} title=${t("nas.auditof", share.name)} onClose=${onClose} wide=${true}><div class="stack">
+    ${!share.audit && html`<p class="muted small">${t("nas.audit.off")}</p>`}
+    <form class="row wrap" onSubmit=${(e) => { e.preventDefault(); load(f); }}>
+      <label>${t("nas.audit.from")}<input type="date" value=${f.from} onInput=${set("from")} /></label>
+      <label>${t("nas.audit.to")}<input type="date" value=${f.to} onInput=${set("to")} /></label>
+      <label>${t("nas.audit.user")}<select value=${f.user} onChange=${set("user")}><option value="">${t("nas.audit.all")}</option>
+        ${who.map((n) => html`<option value=${n}>${n}</option>`)}</select></label>
+      <label>${t("nas.audit.act")}<select value=${f.act} onChange=${set("act")}><option value="">${t("nas.audit.all")}</option>
+        ${acts.map((a) => html`<option value=${a}>${t("nas.audit.a." + a)}</option>`)}</select></label>
+      <label>${t("nas.audit.q")}<input type="text" value=${f.q} onInput=${set("q")} /></label>
+      <button type="submit" class="primary" disabled=${busy}>${t("nas.audit.search")}</button>
+    </form>
+    ${!res ? html`<${Spinner} small=${true} />` : rows.length === 0 ? html`<p class="muted">${t("nas.audit.none")}</p>` : html`<div class="table-wrap tall"><table class="data plain">
+      <thead><tr><th>${t("nas.audit.time")}</th><th>${t("nas.audit.user")}</th><th>${t("nas.audit.ip")}</th><th>${t("nas.audit.act")}</th><th>${t("nas.audit.path")}</th></tr></thead>
+      <tbody>${rows.map((r) => html`<tr><td class="nowrap">${fmtTime(r.time)}</td><td>${r.user}</td><td class="mono small">${r.ip}</td>
+        <td>${tr("nas.audit.a." + r.act, r.act)}</td>
+        <td class="mono small">${r.path || "/"}${r.to ? " → " + r.to : ""}${r.detail ? html`<div class="muted">${r.detail}</div>` : null}</td></tr>`)}</tbody></table></div>`}
+    ${res && res.truncated && html`<p class="muted small">${t("nas.audit.more", rows.length)}</p>`}
+    <p class="muted small">${t("nas.audit.utc")}</p>
+  </div><//>`;
+}
+
 // Keep: how many automatic snapshots stay (0 = none of that kind).
 function Keep({ onClose }) {
   const [k, setK] = useState(null);
@@ -1834,13 +2016,15 @@ function Shares({ admin, host, tick }) {
     ${sh.length === 0 && html`<p class="muted">${t("nas.noshares")}${admin && !ok ? " " + t("nas.sharesneed") : ""}</p>`}
     ${sh.length > 0 && html`<div class="table-wrap tall"><table class="data plain">
       <thead><tr><th>${t("nas.share")}</th><th>${t("nas.ds.dataset")}</th><th>${t("nas.address")}</th><th>${t("nas.rw")}</th><th>${t("nas.ro")}</th><th>${t("nas.used")}</th><th></th></tr></thead>
-      <tbody>${sh.map((s) => html`<tr><td>${s.name}</td><td class="mono small">${s.dataset || (s.pool ? s.pool + "/shares/" + s.name : "")}</td><td class="mono">\\\\${host}\\${s.name}</td><td>${names(s.rw)}${s.managers && s.managers.length ? html`<div class="muted small">${t("nas.manager")}: ${names(s.managers)}</div>` : null}</td><td>${names(s.ro)}</td><td>${gib(s.used)}</td>
+      <tbody>${sh.map((s) => html`<tr><td>${s.name}${s.audit ? html` <span class="badge">${t("nas.audit.badge")}</span>` : null}</td><td class="mono small">${s.dataset || (s.pool ? s.pool + "/shares/" + s.name : "")}</td><td class="mono">\\\\${host}\\${s.name}</td><td>${names(s.rw)}${s.managers && s.managers.length ? html`<div class="muted small">${t("nas.manager")}: ${names(s.managers)}</div>` : null}</td><td>${names(s.ro)}</td><td>${gib(s.used)}</td>
         <td><button class="btn" onClick=${() => setDlg({ kind: "folders", share: s })}>${t("nas.folders")}</button>${" "}<button class="btn" onClick=${() => setDlg({ kind: "snaps", share: s })}>${t("nas.snaps")}</button>${" "}
+          ${admin && html`<button class="btn" onClick=${() => setDlg({ kind: "audit", share: s })}>${t("nas.audit")}</button>${" "}`}
           ${admin && html`<button class="btn" onClick=${() => setDlg({ kind: "edit", share: s })}>${t("nas.edit")}</button>${" "}
             <button class="btn danger" onClick=${() => del(s)}>${t("nas.delete")}</button>`}</td></tr>`)}</tbody></table></div>`}
     ${dlg && dlg.kind === "new" && html`<${ShareForm} shares=${sh} users=${users} pools=${pools} onClose=${close} onDone=${load} />`}
     ${dlg && dlg.kind === "edit" && html`<${ShareForm} share=${dlg.share} users=${users} pools=${pools} onClose=${close} onDone=${load} />`}
     ${dlg && dlg.kind === "snaps" && html`<${Snapshots} share=${dlg.share.name} admin=${admin} onClose=${close} />`}
+    ${dlg && dlg.kind === "audit" && html`<${AuditView} share=${dlg.share} users=${users} onClose=${close} />`}
     ${dlg && dlg.kind === "folders" && html`<${Folders} share=${dlg.share} users=${users} admin=${admin} onClose=${close} />`}
   </div>`;
 }

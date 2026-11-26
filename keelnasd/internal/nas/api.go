@@ -143,6 +143,7 @@ func (s *Server) Handler() http.Handler {
 	m.HandleFunc("PUT /v1/users/{name}", s.wrap(s.putUser))
 	m.HandleFunc("DELETE /v1/users/{name}", s.wrap(s.deleteUser))
 	m.HandleFunc("GET /v1/shares", s.wrap(s.getShares))
+	m.HandleFunc("GET /v1/audit", s.wrap(s.getAudit))
 	m.HandleFunc("POST /v1/shares", s.wrap(s.postShare))
 	m.HandleFunc("PUT /v1/shares/{name}", s.wrap(s.putShare))
 	m.HandleFunc("DELETE /v1/shares/{name}", s.wrap(s.deleteShare))
@@ -154,6 +155,9 @@ func (s *Server) Handler() http.Handler {
 	m.HandleFunc("GET /v1/luns", s.wrap(s.getLUNs))
 	m.HandleFunc("POST /v1/luns", s.wrap(s.postLUN))
 	m.HandleFunc("DELETE /v1/luns/{name}", s.wrap(s.deleteLUN))
+	m.HandleFunc("GET /v1/keel/volumes", s.wrap(s.getKeelVols))
+	m.HandleFunc("POST /v1/keel/volumes", s.wrap(s.postKeelVol))
+	m.HandleFunc("DELETE /v1/keel/volumes/{name}", s.wrap(s.deleteKeelVol))
 	m.HandleFunc("POST /v1/apply", s.wrap(s.postApply))
 	m.HandleFunc("GET /v1/shares/{name}/snapshots", s.wrap(s.getSnapshots))
 	m.HandleFunc("POST /v1/shares/{name}/snapshots", s.wrap(s.postSnapshot))
@@ -858,6 +862,7 @@ func (s *Server) postShare(r *http.Request) (any, error) {
 		RO           []string `json:"ro"`
 		Managers     []string `json:"managers"`
 		RootManagers bool     `json:"root_managers"`
+		Audit        bool     `json:"audit"`
 	}
 	if err := decode(r, &req); err != nil {
 		return nil, err
@@ -903,7 +908,7 @@ func (s *Server) postShare(r *http.Request) (any, error) {
 	if err := checkAccess(st, union(req.RW, mg), req.RO); err != nil {
 		return nil, err
 	}
-	sh := Share{Name: req.Name, Dataset: req.Dataset, RW: req.RW, RO: req.RO, RootManagers: req.RootManagers}
+	sh := Share{Name: req.Name, Dataset: req.Dataset, RW: req.RW, RO: req.RO, RootManagers: req.RootManagers, Audit: req.Audit}
 	if len(mg) > 0 {
 		sh.Managers = mg
 	}
@@ -945,6 +950,7 @@ func (s *Server) putShare(r *http.Request) (any, error) {
 		RO           []string  `json:"ro"`
 		Managers     *[]string `json:"managers"`      // left out: as they are
 		RootManagers *bool     `json:"root_managers"` // left out: as it is
+		Audit        *bool     `json:"audit"`         // left out: as it is (docs/04 section 18)
 	}
 	if err := decode(r, &req); err != nil {
 		return nil, err
@@ -974,6 +980,10 @@ func (s *Server) putShare(r *http.Request) (any, error) {
 	}
 	if req.RootManagers != nil {
 		sh.RootManagers = *req.RootManagers
+	}
+	if req.Audit != nil && *req.Audit != sh.Audit {
+		sh.Audit = *req.Audit
+		s.Log.Printf("share %s: access records %s", name, map[bool]string{true: "on", false: "off"}[sh.Audit])
 	}
 	if !slices.Equal(before.RW, sh.RW) || !slices.Equal(before.RO, sh.RO) || !slices.Equal(before.Managers, sh.Managers) || before.RootManagers != sh.RootManagers {
 		if j := s.runningJob(sh.Dataset); j != nil {

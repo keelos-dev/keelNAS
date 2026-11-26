@@ -21,9 +21,16 @@ const headCheck = 1 << 20
 const poolsRoot = "/pools"
 
 // importableDevices: the importable pools, and for each disk the pool it belongs to.
+// Destroyed pools (zpool import -D) come first, so that a disk that is also in a pool that was
+// not destroyed belongs to that one.
 func (s *Server) importable(names []string, labels map[string]string) ([]Importable, map[string]Importable) {
+	dout, _ := s.Sys.Run("", "zpool", "import", "-D")
+	pools := ParseImport(dout)
+	for i := range pools {
+		pools[i].Destroyed = true
+	}
 	out, _ := s.Sys.Run("", "zpool", "import")
-	pools := ParseImport(out)
+	pools = append(pools, ParseImport(out)...)
 	byDisk := map[string]Importable{}
 	for _, p := range pools {
 		for _, d := range p.Devices {
@@ -64,6 +71,9 @@ func (s *Server) checkedDisks() ([]Disk, error) {
 		}
 		if p, ok := byDisk[d.Name]; ok {
 			d.Pool, d.PoolID, d.PoolState = p.Name, p.GUID, "not_imported"
+			if p.Destroyed {
+				d.PoolState = "destroyed"
+			}
 			continue
 		}
 		// the disk itself and its partitions: a ZFS label on any of them
@@ -139,7 +149,7 @@ func diskBusy(d Disk) string {
 	case d.PoolState == "imported" || (d.Pool != "" && d.PoolState == ""):
 		return "disk " + d.Name + " is in use (pool " + d.Pool + ")"
 	case d.PoolState == "destroyed":
-		return "disk " + d.Name + " holds a destroyed ZFS pool " + d.Pool + " (id " + d.PoolID + "): its data can still be recovered, so keelNAS does not write on it"
+		return "disk " + d.Name + " holds a destroyed ZFS pool " + d.Pool + " (id " + d.PoolID + "): its data can still be recovered (import it), so keelNAS does not write on it"
 	case d.Pool != "":
 		return "disk " + d.Name + " belongs to ZFS pool " + d.Pool + " (id " + d.PoolID + "), which is not imported: keelNAS never writes on another pool's disks; import the pool to use its data"
 	case d.Content == "unknown":
@@ -169,6 +179,7 @@ type ImportablePool struct {
 	OtherHost bool             `json:"other_host"` // last used by another system: import needs force
 	LastHost  string           `json:"last_host"`  // that system's host name, from the label
 	NameTaken bool             `json:"name_taken"` // a pool of that name is imported: give a new name
+	Destroyed bool             `json:"destroyed"`  // zpool destroy was run on it: importing recovers it
 	Size      int64            `json:"size"`       // the member disks' sizes added up (raw)
 	Disks     []ImportableDisk `json:"disks"`
 }
@@ -193,7 +204,7 @@ func (s *Server) importablePools() ([]ImportablePool, error) {
 	res := []ImportablePool{}
 	for _, p := range pools {
 		ip := ImportablePool{Name: p.Name, ID: p.GUID, State: p.State, Status: p.Status, Action: p.Action,
-			Layout: p.Layout, OtherHost: p.OtherHost(), NameTaken: taken[p.Name], Disks: []ImportableDisk{}}
+			Layout: p.Layout, OtherHost: p.OtherHost(), NameTaken: taken[p.Name], Destroyed: p.Destroyed, Disks: []ImportableDisk{}}
 		for _, dv := range p.Devices {
 			x := ImportableDisk{Name: DiskOf(dv.Path, labels, names), Device: dv.Path, State: dv.State}
 			for _, g := range geom {
@@ -225,7 +236,7 @@ func (s *Server) getImportable(r *http.Request) (any, error) {
 	return map[string]any{"pools": p}, nil
 }
 
-// postImport takes over a pool that is on the disks: {name: new name (optional), force: true
+// postImport takes over a pool that is on the disks, or recovers a destroyed one: {name: new name (optional), force: true
 // when it was last used by another system}. Its datasets are mounted below /pools/<name>
 // (altroot, kept in the state and used again at every start), the pool itself is not changed
 // (no upgrade, no property set), except the name when a new one is given.
@@ -284,6 +295,9 @@ func (s *Server) postImport(r *http.Request) (any, error) {
 	}
 	altroot := poolsRoot + "/" + name
 	args := []string{"import"}
+	if p.Destroyed {
+		args = append(args, "-D") // recovers it: the labels are marked active again
+	}
 	if p.OtherHost {
 		args = append(args, "-f")
 	}

@@ -405,6 +405,9 @@ type Importable struct {
 	Action  string
 	Layout  string // the first top-level vdev's kind: raidz2, mirror, … ("disk" = no redundancy)
 	Devices []Member
+	// Destroyed: listed by zpool import -D (zpool destroy only marks the labels): it can be
+	// imported again with -D, with its data, as long as nothing has written on its disks.
+	Destroyed bool
 }
 
 // OtherHost: the pool was last used by another system (another host id): importing it needs

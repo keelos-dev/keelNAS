@@ -3,6 +3,7 @@ package nas
 import (
 	"encoding/json"
 	"fmt"
+	"errors"
 	"io"
 	"log"
 	"slices"
@@ -698,5 +699,30 @@ func TestShareACL(t *testing.T) {
 		if strings.HasPrefix(line, "chown") || strings.HasPrefix(line, "zfs set") || strings.HasPrefix(line, "setfacl") {
 			t.Errorf("changed: %s", line)
 		}
+	}
+}
+
+// A LUN whose zvol has no /dev/zvol node (the geom → dev switch that fails silently) gets
+// volmode=dev set once more; a zvol with its node is left alone.
+func TestEnsureZvolNode(t *testing.T) {
+	f := &sys.Fake{}
+	s := &Server{Sys: f, Log: log.New(io.Discard, "", 0)}
+	if err := s.ensureZvolNode("tank/luns/a"); err != nil || f.Ran("zfs set") {
+		t.Fatalf("node there: err %v, calls %v", err, f.Calls)
+	}
+	missing := true
+	f.Handle = func(line, _ string) (string, error, bool) {
+		switch {
+		case strings.HasPrefix(line, "test -c /dev/zvol/tank/luns/a"):
+			if missing {
+				return "", errors.New("exit status 1"), true
+			}
+		case strings.HasPrefix(line, "zfs set volmode=dev tank/luns/a"):
+			missing = false
+		}
+		return "", nil, false
+	}
+	if err := s.ensureZvolNode("tank/luns/a"); err != nil || !f.Ran("zfs set volmode=dev tank/luns/a") {
+		t.Fatalf("node missing: err %v, calls %v", err, f.Calls)
 	}
 }

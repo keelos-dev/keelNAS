@@ -69,7 +69,12 @@ func SmbConfig(st *State, paths map[string]string, guests map[string][]string) s
 		// a folder somebody may not enter is not in his listing (docs/07; Windows calls it
 		// access-based enumeration)
 		b.WriteString("  hide unreadable = yes\n")
-		b.WriteString("  vfs objects = shadow_copy2 zfsacl\n")
+		if sh.Audit {
+			b.WriteString("  vfs objects = full_audit shadow_copy2 zfsacl\n")
+			b.WriteString(auditSmb)
+		} else {
+			b.WriteString("  vfs objects = shadow_copy2 zfsacl\n")
+		}
 		b.WriteString("  nfs4:mode = special\n")
 		b.WriteString("  nfs4:acedup = merge\n")
 		// Windows' "previous versions" from the share's snapshots (docs/04 section 9.3).

@@ -56,6 +56,8 @@ type Share struct {
 	// root (the others still see it and enter the folders they may enter).
 	Managers     []string `json:"managers,omitempty"`
 	RootManagers bool     `json:"root_managers,omitempty"`
+	// Audit: who opened, changed, renamed or deleted what is recorded (docs/04 section 18).
+	Audit bool `json:"audit,omitempty"`
 	// Owner is only read: keelnasd 251c814 had Samba's force user here (docs/06 §6, dropped
 	// 2026-10-08); normalize drops it.
 	Owner string `json:"owner,omitempty"`
@@ -107,11 +109,13 @@ type State struct {
 	// Backups: the systems whose backups keelNAS fetches (backuppull.go, docs/08)
 	Backups    []BackupSource `json:"backups,omitempty"`
 	BackupKeep *BackupKeep    `json:"backup_keep,omitempty"` // nil = DefaultBackupKeep
+	// KeelVols: guests' disks for keel on this keelNAS (keelvol.go)
+	KeelVols []KeelVol `json:"keel_volumes,omitempty"`
 }
 
 // Fresh: nothing set up yet (no pools, users, shares or LUNs). Only then may settings be restored.
 func (s *State) Fresh() bool {
-	return len(s.Pools) == 0 && len(s.Users) == 0 && len(s.Shares) == 0 && len(s.LUNs) == 0 && s.Directory == nil
+	return len(s.Pools) == 0 && len(s.Users) == 0 && len(s.Shares) == 0 && len(s.LUNs) == 0 && len(s.KeelVols) == 0 && s.Directory == nil
 }
 
 // ParseState reads state.json's text; a missing "snapshots" (or a missing class in it) is the default.
@@ -182,6 +186,7 @@ func (s *State) Clone() *State {
 	c.Pools = slices.Clone(s.Pools)
 	c.Users = slices.Clone(s.Users)
 	c.LUNs = slices.Clone(s.LUNs)
+	c.KeelVols = slices.Clone(s.KeelVols)
 	c.Datasets = slices.Clone(s.Datasets)
 	c.AutoSnap = maps.Clone(s.AutoSnap)
 	c.Shares = make([]Share, len(s.Shares))

@@ -36,6 +36,9 @@ type Seed struct {
 	// Internal: the NIC that connects only keelNAS and its host (network.go): its MAC and the
 	// address keelNAS takes on it. Older seeds have none.
 	Internal *SeedInternal `json:"internal,omitempty"`
+	// Data: keel's data link (keelOS docs/90 §10.6): a point-to-point NIC to the host only for
+	// block traffic (iSCSI, NVMe/TCP), MTU 9000. Older seeds have none.
+	Data *SeedData `json:"data,omitempty"`
 
 	fp   []byte // Fingerprint as 32 bytes
 	spki []byte // SPKI as 32 bytes, nil = none
@@ -45,6 +48,13 @@ type Seed struct {
 type SeedInternal struct {
 	MAC     string `json:"mac"`
 	Address string `json:"address"` // 169.254.77.2/24
+}
+
+// SeedData is the seed's "data".
+type SeedData struct {
+	MAC     string `json:"mac"`
+	Address string `json:"address"` // 169.254.78.2/30
+	MTU     int    `json:"mtu"`     // 9000
 }
 
 // ErrNotSeed: the bytes are not a seed at all (zeros, other data, no "keelnas_seed": 1).

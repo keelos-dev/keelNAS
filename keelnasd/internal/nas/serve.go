@@ -15,11 +15,14 @@ const Socket = "/var/run/keelnasd.sock"
 func (s *Server) Serve(socket string) error {
 	// keel's internal link first (network.go): keel can reach this keelNAS before the pools are
 	// imported, the services run and whatever the LAN does (user 2026-10-03: "管理网应该早就起来了吧")
+	s.ZvolDefaultDev()
 	if sd, _ := s.findSeed(); sd != nil {
 		s.hmu.Lock()
 		s.seed = sd
 		s.hmu.Unlock()
 		s.ApplyInternal()
+		s.ApplyData()
+		s.ApplyRootPassword()
 	}
 	if s.State().Fresh() {
 		// A new system disk (or a new keelNAS) with the old data disks: take the settings back.
